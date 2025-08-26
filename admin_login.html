@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Admin Login Page</title>
+    </head>
+
+    <body>
+        <h1>Welcome to Admin Page</h1>
+        <label>Username:</label>
+        <input type = "text" id = "username" placeholder = "e.g yourname@num">
+        <br><br>
+        <label>Password:</label>
+        <input type = "text" id = "password" placeholder = "e.g pass&word">
+        <button onclick = "check()">Submit</button>
+        <p id = "message"></p>
+
+        <script>
+            function check(){
+                let user = document.getElementById("username").value;
+                let pass = document.getElementById("password").value;
+
+                if (user === "imnotadmin" && pass === "heyhey123321"){
+                    document.getElementById("message").innerText = "Login Successful!! Welcome admin!";
+                    document.body.style.backgroundColor = "lightgreen";
+                } else {
+                    document.getElementById("message").innerText = "Login Failed!! You are not admin!";
+                    document.body.style.backgroundColor = "red";
+                }
+            }
+        </script>
+    </body>
+</html>

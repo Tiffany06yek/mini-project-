@@ -1,0 +1,216 @@
+body {
+    background:#FFFDF8;
+    font-family: "Nunito", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: bold;
+    font-style: normal;
+    height: 100vh; /* 确保页面高度占满视口 */
+    margin: 15px;
+}
+
+h2 {
+    font-size: 70px;
+    font-weight: bold;
+    color: rgb(0, 0, 0);
+    text-align: center;
+    text-shadow: 4px 4px 4px rgb(137, 137, 137);
+    margin-top: 10px;
+    margin-bottom: 0px;
+}
+
+#xiapee p{
+    font-size: 25px;
+    color: rgb(255, 140, 47);
+    text-align: center;
+    font-style: italic;
+    text-shadow: 4px 4px 3px rgba(128, 128, 128, 0.39);
+    margin-top: 20px;
+    margin-bottom: 0px;
+}
+
+#login_page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin-top: 40px;
+    font-size: 20px;
+    font-weight: 600;
+    gap: 20px;
+}
+.signin {
+    border-style: solid;
+    border-color: #E7E5E4;
+    border-width: 1px;
+    border-radius: 35px;
+    padding: 15px;
+    margin: 15px;
+    width: 350px;
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 5px 5px 3px rgb(255, 184, 97);
+    font-size: 15px;
+}
+
+.sign_button {
+    background-color:#F97316;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #E7E5E4;
+    border-radius: 20px;
+    font-size: 20px;
+    font-weight: bold;
+    color:white;
+    width: 350px;
+    padding: 10px;
+}
+
+.error {
+    color: red;
+    font-size: 14px;
+}
+
+/*order_status page*/
+
+.order_delivery {
+    display: flex;
+    justify-content: center; /* 整个区域居中 */
+    align-items: center;
+    border-style: solid;
+    border-color: grey;
+    border-radius: 30px;
+    background-color: white;
+    gap: 5px;
+    padding: 5px;
+    width: 230px;
+    margin-top: 5px;
+    margin: 20px auto;
+}
+
+.order_delivery a {
+    padding: 5px 15px;
+    border-radius: 30px;
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+}
+
+.order_delivery a:hover {
+    background-color: orange;
+    color: white;
+}
+
+.order_delivery a.active {
+    background-color: rgb(255, 98, 0);
+    color: white;
+}
+
+.orderID_ETA {
+    display: flex;
+    justify-content: space-between; /* 左右分散对齐 */
+    align-items: center;            /* 垂直居中 */
+    margin: 20px 20px; 
+    font-size: 20px;
+}
+
+#card1 p{
+    font-size: 30px;
+    text-shadow: 5px 5px 6px gray ;
+}
+
+
+.timeline {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-style: solid;
+    border-color: black;
+    border-width: 0px;
+    border-radius: 30px;
+    width: 400px;
+    height: 450px;
+    list-style: none;
+    gap: 30px;
+    top: 150px;
+    margin-left: 100px;
+}
+
+.timeline li{
+    position: relative;
+    text-align: center;
+    text-decoration: none;
+    border: solid 1px black;
+    border-radius: 20px;
+    width: 200px;
+    padding: 10px;
+    font-size: 17px;
+    font-weight: 500;
+    color: #6b7280;
+    background-color: whitesmoke;
+}
+
+/*circle*/
+.timeline li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid #D1D5D8;
+    background: #fff;
+}
+
+/*vertical line*/
+.timeline li::after {
+    content: "";
+    position: absolute;
+    left: 8px;
+    width: 2px;
+    background: #E5E7EB;
+}
+
+.card2 {
+    position: absolute;
+    background-color: rgb(255, 255, 255);
+    border: solid 1px black;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    height: 380px;
+    width:320px;
+    padding: 13px;
+    margin-left: 800px;
+    top:200px;
+    font-size: 17px;
+}
+
+.total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 25px;
+    text-shadow: 2px 4px 4px rgb(255, 227, 174);
+}
+
+#back a {
+    display: flex;
+    flex-direction: row;
+    position: sticky;
+    gap: 100px;
+}
+#back a {
+    text-align: center;
+    justify-content: center;
+    text-decoration: none;
+    border: 1px solid red;
+    background-color: orange;
+    font-size: 20px;
+    color: white;
+    padding: 10px;
+    border-radius: 15px;
+    height: 20px;
+    width: 120px;
+}
+

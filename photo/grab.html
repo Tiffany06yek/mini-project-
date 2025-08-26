@@ -1,0 +1,116 @@
+<!--用 <div> 做 3 种不同的餐品（可以是汉堡、奶茶、炸鸡）。
+每个餐品要有：
+一个标题（<h2>）
+一张图片（<img>）
+一个价格（<p>）
+一个按钮（<button>）-->
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>XIApee Platform: Your Best Choice</title>
+
+        <style> /*CSS*/
+        body{
+            background-color: #ddd9ff; /*背景颜色*/
+            font-family: 'Times New Roman', Times, serif;/*字体*/
+            text-align: center;/*字居中*/
+        }
+
+        .product{ /*美化product盒子 div*/
+            background-color: white; /* 背景白色 */
+            border: 1px solid #ddd; /* 灰色边框 */
+            border-radius: 10px; /* 圆角 */
+            width: 200px; /* 宽度固定 */
+            margin: 20px auto; /* 上下 20px 间距，水平居中 */
+            padding: 15px; /* 内边距 */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* 阴影 */
+        }
+
+        .product img{
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .product button{
+            background-color: #ff6600; /* 橙色背景 */
+            color: white; /* 文字白色 */
+            border: none; /* 去掉边框 */
+            padding: 10px 15px; /* 内边距 */
+            border-radius: 5px; /* 圆角 */
+            cursor: pointer; /* 鼠标变手形 */
+        }
+
+        #cart {
+            background: #fff;
+            padding: 15px;
+            margin: 20px auto;
+            width: 300px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #cart ul {
+            list-style: circle;/*none可以去除bullet*/
+            padding: 0;
+        }
+        #cart li {
+            border-bottom: 1px solid #ddd;
+            padding: 5px 0;
+        }
+        </style>
+    </head>
+
+    <body>
+        <div id = "cart">
+            <h2>Your Cart</h2>
+            <ul id = "items"></ul>
+            <p id = "totalPrice">Total: $0</p>
+        </div>
+
+        <h1>Fast Food Category</h1>
+        <div class = "product">                 <!--class--这样每个餐品都是 .product 类，可以统一美化。-->
+            <h3>American Burger🍔</h3>
+            <img src = "burger.png" alt = "Beef King">
+            <p>Price: $15</p>
+            <button onclick = "addtocart('Burger', 15)">Add To Cart</button>
+        </div>
+
+        <div class = "product">
+            <h3>Itali Pizza🍕</h3>
+            <img src = "pizza.jpg" alt = "Pezzo">
+            <p>Price: $10 / piece</p>
+            <button onclick = "addtocart('Pizza', 10)">Add To Cart</button>
+        </div>
+
+        <div class = "product">
+            <h3>Secret Recipe🍰</h3>
+            <img src = "cake.jpg" alt = "Chocolate Cake">
+            <p>Price: $15 / piece</p>
+            <button onclick = "addtocart('Cake', 15)">Add to Cart</button>
+        </div>
+
+        <script>
+            let cart = [];//items added
+            let total = 0;
+
+            function addtocart(productname, price){
+                cart.push({productname, price});
+                total += price;
+                updateCart();
+            }
+
+            function updateCart(){
+                let cartList = document.getElementById("items");
+                cartList.innerHTML = "";//清空内容先
+
+                cart.forEach(item => { //把 cart 数组里的每一个商品，一个一个地拿出来做事情。
+                    let li = document.createElement("li"); //在网页里新建一个 <li> 标签（列表项目）。
+                        li.textContent = `${item.productname} ---- $${item.price}`;//${变量}
+                        cartList = cartList.appendChild(li);//list item放进cartlist
+                })
+
+                document.getElementById("totalPrice").textContent = `Total: $${total}`;
+            }
+        </script>
+    </body>
+</html>

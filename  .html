@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CSS Position Demo</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+/* 通用样式 */
+.box {
+  width: 200px;
+  height: 100px;
+  margin: 20px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* 五种不同的定位 */
+.static {
+  background: gray;
+  position: static; /* 默认 */
+}
+
+.relative {
+  background: blue;
+  position: relative;
+  top: 20px;   /* 向下移动 20px */
+  left: 30px;  /* 向右移动 30px */
+}
+
+.container {
+  position: relative;
+  height: 150px;
+  background: #eee;
+  margin: 20px;
+}
+.absolute {
+  background: green;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+.fixed {
+  background: red;
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+}
+
+.sticky {
+  background: orange;
+  position: sticky;
+  top: 0; /* 滚动到顶部时吸附 */
+}
+
+/* 填充页面用来测试滚动 */
+.filler {
+  height: 800px;
+  background: linear-gradient(to bottom, #fafafa, #ddd);
+}
+</style>
+</head>
+<body>
+
+<h1>CSS Position Demo</h1>
+
+<div class="box static">static</div>
+
+<div class="box relative">relative</div>
+
+<div class="container">
+  <div class="box absolute">absolute</div>
+  <p>我是父容器 (relative)，绿色的 absolute 会相对我定位。</p>
+</div>
+
+<div class="box sticky">sticky</div>
+
+<div class="filler">
+  <p>滚动页面时看看 sticky 和 fixed 的区别。</p>
+</div>
+
+<div class="box fixed">fixed</div>
+
+</body>
+</html>

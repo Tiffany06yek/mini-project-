@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>To Do List</title>
+    </head>
+
+    <body>
+        <h1>TRY TO CREATE YOUR TO DO LIST</h1>
+        <label>Task:</label>
+        <input type = "text" id = "taskinput" placeholder = "e.g. Prepare breakfast">
+        <button onclick = "addtask()">Submit</button>
+        <button onclick = "resetAll()">Reset All</button>
+
+        <ul id = "tasklist"></ul> <!--unordered list-->
+
+        <script>
+            function addtask(){
+                let task = document.getElementById("taskinput").value;
+
+                if (task === ""){
+                    alert("Please enter a task.");
+                    return;
+                }
+
+                let li = document.createElement("li"); //做一个element出来 list item
+                li.innerText = task + " ";//这个 <li> 就是你每一行任务的“容器”。
+
+                //create a delete button
+                let delete_button = document.createElement("button");
+                delete_button.innerText = "Delete";
+                delete_button.onclick = function(){ li.remove()};
+
+                //这段代码会在每一行任务后面放一个“Delete”按钮，点击就能删除那一行。
+                li.appendChild(delete_button);// 把按钮加到 <li> 里
+                
+                //网页上就能看到你新添加的任务。
+                document.getElementById("tasklist").appendChild(li);// 把 <li> 加到 <ul> 里
+                document.getElementById("taskinput").value = ""; //enter了一次过后自动清空输入框
+            }
+
+        function resetAll(){
+                document.getElementById("tasklist").innerHTML = "";  // 真正清空任务 把 HTML 内容都删掉（li 消失
+                document.getElementById("taskinput").value = "";      // 同时清空输入框
+        }
+            //document.getElementById("tasklist").innerText = ""; 
+            //👆这确实能清空文字，但 不会真正删除 <li> 元素，只是把文字抹掉了，<li> 仍然在网页里存在，只是“看不到”而已。
+
+        </script>
+    </body>
+</html>
