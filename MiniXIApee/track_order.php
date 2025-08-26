@@ -63,6 +63,7 @@ $order = find_order($id);
                         <tr><th><?= safe($order['restaurant'])?></th></tr>
                     <?php endforeach;?>
                 </thead>
+                <tbody></tbody>
             </div>
         </div>
     </div>
