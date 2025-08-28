@@ -27,15 +27,15 @@ $order = find_order($id);
 
             <span class = "container">
                 <ul>
-                    <li class = "step" style = "--i:0"></li><span class = "label">Placed Order</span></li>
-                    <li class = "step" style = "--i:1"></li><span class = "label">Preparing</span></li>
+                    <li class = "step" style = "--i:0"><span class = "label">Placed Order</span></li>
+                    <li class = "step" style = "--i:1"><span class = "label">Preparing</span></li>
                     <?php if ($type === 'delivery'):?>
-                        <li class = "step" style = "--i:2"></li><span class = "label">Picked Up By Courier</span></li>
-                        <li class = "step" style = "--i:3"></li><span class = "label">On The Way</span></li>
-                        <li class = "step" style = "--i:4"></li><span class = "label">Arrived</span></li>
+                        <li class = "step" style = "--i:2"><span class = "label">Picked Up By Courier</span></li>
+                        <li class = "step" style = "--i:3"><span class = "label">On The Way</span></li>
+                        <li class = "step" style = "--i:4"><span class = "label">Arrived</span></li>
                     <?php else :?>
-                        <li class = "step" style = "--i:2"></li><span class = "label">Ready for Pickup</span></li>
-                        <li class = "step" style = "--i:3"></li><span class = "label">Picked Up By Customer</span></li>
+                        <li class = "step" style = "--i:2"><span class = "label">Ready for Pickup</span></li>
+                        <li class = "step" style = "--i:3"><span class = "label">Picked Up By Customer</span></li>
                     <?php endif;?>
                 </ul>
             </span>
@@ -58,12 +58,14 @@ $order = find_order($id);
 
             <div class = "order_bills">
                 <h3>Order Summary</h3>
-                <thead>
-                    <?php foreach($order as $item):?>
-                        <tr><th><?= safe($order['restaurant'])?></th></tr>
-                    <?php endforeach;?>
-                </thead>
-                <tbody></tbody>
+                <table>
+                    <thead>
+                        <?php foreach($order as $item):?>
+                            <tr><th><?= safe($order['restaurant'])?></th></tr>
+                        <?php endforeach;?>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
     </div>
