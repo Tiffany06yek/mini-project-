@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XIApee - Sign In & Sign Up</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="background-elemxents">
+        <div class="bg-shape"></div>
+        <div class="bg-shape"></div>
+        <div class="bg-shape"></div>
+    </div>
+
+    <div class="auth-container">
+        <div class="auth-left" id="authLeft">
+            <div class="welcome-content" id="welcomeContent">
+                <img class="welcome-logo" src="image.png"></img>
+                <h1 class="welcome-title" id="welcomeTitle">Welcome to XIApee</h1>
+                <p class="welcome-subtitle" id="welcomeSubtitle">Get your favorite meals delivered fast, fresh, and
+                    local. Join thousands of food lovers in your area.</p>
+                <div class="food-icons">
+                    <span class="food-icon">🍕</span>
+                    <span class="food-icon">🍔</span>
+                    <span class="food-icon">🍜</span>
+                    <span class="food-icon">🍱</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-right">
+            <div class="logo">🍊XIApee</div>
+
+            <div class="auth-toggle">
+                <button class="toggle-btn active" id = "btnsignUpForm" onclick = "showSignIn()">Sign In</button>
+                <button class="toggle-btn" id = "btnsignInForm" onclick = "showSignUp()">Sign Up</button>
+            </div>
+
+            <div class="form-container">
+                <div id="msg" class="alert"></div>
+                <!-- Sign In Form -->
+                <form class="auth-form" id = "signinform" action = "./signin.php" method = "post">
+                    <h2 class="auth-title">Welcome Back</h2>
+                    <p class="auth-subtitle">Please enter your details to sign in.</p>
+
+                    <div class="form-group">
+                        <label for="signInEmail" class="form-label">Email</label>
+                        <input type="email" id="signInEmail" name = "email" class="form-input" placeholder="Enter your email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signInPassword" class="form-label">Password</label>
+                        <div class="password-container">
+                            <input type="password" id="signInPassword" name = "password" class="form-input"
+                                placeholder="Enter your password" required>
+                            <button type="button" class="password-toggle"
+                                onclick="togglePassword('signInPassword')">👁️</button>
+                        </div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-group">
+                            <input type="checkbox" id="rememberMe">
+                            Remember me
+                        </label>
+                        <a href="#" class="forgot-password">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="auth-btn">Sign In</button>
+
+                </form>
+
+                <!-- Sign Up Form -->
+                <form class="auth-form hidden" id = "signupform" action = "./register.php" method = "post">
+                    <h2 class="auth-title">Create Account</h2>
+                    <p class="auth-subtitle">Join FoodDash and start ordering today!</p>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName" class="form-label">First Name</label>
+                            <input type="text" id="firstName" name = "firstName" class="form-input" placeholder="First name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName" class="form-label">Last Name</label>
+                            <input type="text" id="lastName" name = "lastName" class="form-input" placeholder="Last name" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signUpEmail" class="form-label">Email</label>
+                        <input type="email" id="signUpEmail" class="form-input" name = "signUpEmail" placeholder="Enter your email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phoneNumber" class="form-label">Phone Number</label>
+                        <input type="tel" id="phoneNumber" class="form-input" name = "phoneNumber" placeholder="+60 12-345 6789" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signUpPassword" class="form-label">Password</label>
+                        <div class="password-container">
+                            <input type="password" id="signUpPassword" name = "password"class="form-input"
+                                placeholder="Create a strong password" required>
+                            <button type="button" class="password-toggle"
+                                onclick="togglePassword('signUpPassword')">👁️</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword" class="form-label">Confirm Password</label>
+                        <div class="password-container">
+                            <input type="password" id="confirmPassword" name = "confirm_pswd" class="form-input"
+                                placeholder="Confirm your password" required>
+                            <button type="button" class="password-toggle"
+                                onclick="togglePassword('confirmPassword')">👁️</button>
+                        </div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-group">
+                            <input type="checkbox" id="agreeTerms" required>
+                            I agree to the Terms & Conditions
+                        </label>
+                    </div>
+
+                    <button type="submit" class="auth-btn">Create Account</button>
+
+                    <p class="terms-text">
+                        By signing up, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy
+                            Policy</a>
+                    </p>
+
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="/login.js" defer></script>
+</body>
+
+</html>
