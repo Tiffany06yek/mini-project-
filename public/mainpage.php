@@ -1,5 +1,5 @@
 <?php
-require __DIR__.'/database.php';
+require __DIR__ . '/../backend/database.php';
 $conn = mysqli_connect($db_server, $db_user, $db_pass, $db_name, $port);
 
 $tag = $_GET['tag'] ?? 'all';
@@ -15,7 +15,7 @@ $params = [];
 $types = '';
 
 if ($tag !== 'all') {
-  $sql.= " AND FIND_IN_SET(?, tags)";  
+  $sql .= " AND FIND_IN_SET(?, tags)";  
   $params[] = $tag; 
   $types .= 's';
 }
@@ -24,11 +24,11 @@ $sql .= " ORDER BY rating DESC, name ASC";
 
 $stmt = mysqli_prepare($conn, $sql);
 if ($params) { 
-    mysqli_stmt_bind_param($stmt, $types, ...$params); }
-    mysqli_stmt_execute($stmt);
-    $res  = mysqli_stmt_get_result($stmt);
-    $rows = $res ? mysqli_fetch_all($res, MYSQLI_ASSOC) : [];
-
+    mysqli_stmt_bind_param($stmt, $types, ...$params); 
+}
+mysqli_stmt_execute($stmt);
+$res  = mysqli_stmt_get_result($stmt);
+$rows = $res ? mysqli_fetch_all($res, MYSQLI_ASSOC) : [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -36,7 +36,9 @@ if ($params) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>XIApee - Main Page</title>
-  <link rel="stylesheet" href="/main.css">
+  <!-- 改成 assets/ 前缀 -->
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
   <div class="main-container">
@@ -54,7 +56,7 @@ if ($params) {
         <a href="?tag=Asian"   class="category<?= $tag==='Asian'?' active':''?>">Asian</a>
         <a href="?tag=Chinese" class="category<?= $tag==='Chinese'?' active':''?>">Chinese</a>
         <a href="?tag=Halal"   class="category<?= $tag==='Halal'?' active':''?>">Halal</a>
-        <a href="?tag=Drinks"   class="category<?= $tag==='Drinks'?' active':''?>">Drinks</a>
+        <a href="?tag=Drinks"  class="category<?= $tag==='Drinks'?' active':''?>">Drinks</a>
       </div>
     </div>
 
@@ -68,7 +70,7 @@ if ($params) {
             <div class="card-image">
               <?php if (!empty($m['image_url'])): ?>
                 <img src="<?= htmlspecialchars($m['image_url']) ?>"
-                    alt="<?= htmlspecialchars($m['name']) ?>">
+                     alt="<?= htmlspecialchars($m['name']) ?>">
               <?php else: ?>
                 <span class="image-placeholder">🍳</span>
               <?php endif; ?>
@@ -93,8 +95,14 @@ if ($params) {
             </div>
           </div>
         <?php endforeach; endif; ?>
-        </div>
+      </div>
     </div>
   </div>
+
+  <!-- 引入 JS 脚本 -->
+  <script src="assets/js/header.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/get_restaurant.js"></script>
+  <script src="assets/js/product.js"></script>
 </body>
 </html>
