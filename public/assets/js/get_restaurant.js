@@ -1,7 +1,7 @@
 import {Product} from './product.js';
 
-const API_MERCHANTS = '/xiapee/api/mainpage.php'; // 返回 { ok, merchants:[...] }
-const API_MENU      = '/xiapee/api/get_menu.php';      // 返回 { ok, items:[...] }
+const API_MERCHANTS = '../backend/get_restaurant.php'; // 返回 { ok, merchants:[...] }
+const API_MENU      = '../backend/get_menu.php';      // 返回 { ok, items:[...] }
 const grid = document.querySelector('.restaurant-grid');
 
 function renderList(merchant){
