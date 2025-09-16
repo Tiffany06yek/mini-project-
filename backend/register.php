@@ -12,7 +12,7 @@ $confirm_pswd = $_POST['confirm_pswd'] ?? '';
 
 function back($params = []) {
     $qs = http_build_query($params);
-    header('Location: ./login.html' . ($qs ? ('?'.$qs) : ''));
+    header('Location: ../login.html' . ($qs ? ('?'.$qs) : ''));
     exit;
 }
 

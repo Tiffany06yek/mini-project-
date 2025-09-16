@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       
           try {
-            const res = await fetch('./signin.php', {
+            const res = await fetch('../backend/signin.php', {
               method: 'POST',
               body: new FormData(form),
               headers: { 'X-Requested-With': 'fetch' } // 让后端识别是AJAX

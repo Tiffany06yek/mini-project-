@@ -24,12 +24,12 @@ export function Header() {
     search_inp.type = "text"
     search_inp.innerHTML = "Log out"
     // lens.src = "/public/icons/lens_icon.svg"
-    logo_img.style.backgroundImage = `url(/public/img/logo.png)`
-    home_icon.style.backgroundImage = `url(/public/icons/home_icon.png)`
-    cart_icon.style.backgroundImage = `url(/public/icons/cart_icon.png)`
-    tracking_icon.style.backgroundImage = `url(/public/icons/tracking_icon.png)`
-    money_icon.style.backgroundImage = `url(/public/icons/money_icon.png)`
-    profile.style.backgroundImage = `url(/public/icons/profile_icon.svg)`
+    logo_img.style.backgroundImage = `url(../img/logo.png)`
+    home_icon.style.backgroundImage = `url(../img/home_icon.png)`
+    cart_icon.style.backgroundImage = `url(../img/cart_icon.png)`
+    tracking_icon.style.backgroundImage = `url(../img/tracking_icon.png)`
+    money_icon.style.backgroundImage = `url(../img/money_icon.png)`
+    profile.style.backgroundImage = `url(../img/profile_icon.svg)`
 
     header_cont.classList.add('header_cont')
     left.classList.add('left')
