@@ -41,6 +41,7 @@ mini-project/
     └── ...
 
 
+
 Execution Order:
 Run all migration files in chronological order (by filename).
 Optionally run seed files if you need demo/test data.
