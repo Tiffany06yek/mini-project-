@@ -15,12 +15,12 @@ If merchants.id is INT UNSIGNED, then orders.merchant_id must also be INT UNSIGN
 2. File Organization
 
 db/migrations/ → Contains database structure SQL files (CREATE/ALTER TABLE).
-Naming convention: YYYY_MM_DD_NNN_description.sql
-Example: 2025_09_21_001_create_orders.sql
+Naming convention: description.sql
+Example: create_orders.sql
 
 db/seeds/ → Contains initial or test data SQL files (INSERT statements).
-Naming convention: YYYY_MM_DD_NNN_seed_tablename.sql
-Example: 2025_09_21_001_seed_merchants.sql
+Naming convention: seed_tablename.sql
+Example: seed_merchants.sql
 
 
 3. Collaboration Rules
