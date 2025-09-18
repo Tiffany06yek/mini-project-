@@ -22,29 +22,6 @@ db/seeds/ → Contains initial or test data SQL files (INSERT statements).
 Naming convention: YYYY_MM_DD_NNN_seed_tablename.sql
 Example: 2025_09_21_001_seed_merchants.sql
 
-Example Project Tree
-mini-project/
-├── backend/
-│   └── ...
-├── db/
-│   ├── migrations/
-│   │   ├── 2025_09_20_001_create_users.sql
-│   │   ├── 2025_09_20_002_create_merchants.sql
-│   │   ├── 2025_09_21_001_create_orders.sql
-│   │   ├── 2025_09_21_002_create_order_items.sql
-│   │   └── 2025_09_21_003_create_order_item_addons.sql
-│   └── seeds/
-│       ├── 2025_09_21_001_seed_users.sql
-│       ├── 2025_09_21_002_seed_merchants.sql
-│       └── 2025_09_21_003_seed_products.sql
-└── frontend/
-    └── ...
-
-
-
-Execution Order:
-Run all migration files in chronological order (by filename).
-Optionally run seed files if you need demo/test data.
 
 3. Collaboration Rules
 
