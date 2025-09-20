@@ -1,6 +1,5 @@
 <?php
 require __DIR__ . '/../backend/database.php';
-$conn = mysqli_connect($db_server, $db_user, $db_pass, $db_name, $port);
 
 $tag = $_GET['tag'] ?? 'all';
 $allow = ['all','Asian','Western','Chinese','Halal', 'Drinks'];
@@ -9,7 +8,7 @@ if (!in_array($tag, $allow, true)) {
     $tag = 'all';
 }
 
-$sql = "SELECT res_id, image_url, name, merchant_type, tags, location, open_hours, delivery_fee, eta, rating
+$sql = "SELECT id AS res_id, image_url, name,  `type` AS merchant_type, tags, location, open_hours, delivery_fee, eta, rating
         FROM merchants WHERE 1";
 $params = []; 
 $types = '';
