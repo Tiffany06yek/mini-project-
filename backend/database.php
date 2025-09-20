@@ -1,22 +1,29 @@
 <?php
-// 让 mysqli 出错时抛异常，便于 catch 到具体错误
+// database.php — shared MySQL connection (mysqli)
+
+// Throw mysqli warnings as exceptions (easier to debug)
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
+// 1) Load default config committed in repo
+require __DIR__ . '/config.example.php';
 
-$db_server = "127.0.0.1";
-$db_user = "root";
-$db_pass = "root";
-$db_name = "DB_xiapee";
-$port = 8889;
-$conn = "";
-
-try {//放“可能出错”的代码。
-    $conn = mysqli_connect($db_server, $db_user, $db_pass, $db_name, $port);//尝试连接数据库。 参数分别是：数据库主机、用户名、密码、库名。
-    mysqli_set_charset($conn, 'utf8mb4');
+// 2) If a local override exists, load it (do NOT commit this file)
+$local = __DIR__ . '/config.local.php';
+if (file_exists($local)) {
+    require $local;
 }
-catch (mysqli_sql_exception $e) {
+
+/**
+ * Expected variables after config load:
+ * $DB_HOST, $DB_PORT, $DB_USER, $DB_PASS, $DB_NAME
+ */
+
+// 3) Connect once; expose $conn for all scripts that `require` this file
+try {
+    $conn = mysqli_connect($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME, (int)$DB_PORT);
+    mysqli_set_charset($conn, 'utf8mb4');
+} catch (mysqli_sql_exception $e) {
+    // Let caller see a meaningful error (you can customize this)
     throw $e;
 }
 
-
-mysqli_set_charset($conn, 'utf8mb4');
