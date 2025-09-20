@@ -1,0 +1,4 @@
+INSERT INTO `users` (`id`, `name`, `school_email`, `role`, `phone`, `password_hash`, `default_address`, `created_at`) VALUES
+(1, 'Yek Tiffany', 'fit@xmu.edu.my', 'student', '+60 11 121 1213', '$2y$12$/YISFYxkNr8A0vKsRmPXNuYZGxonVqFIL.An7CzPuAmvJcsveBLy6', NULL, '2025-09-20 03:24:35');
+
+// Testing Password: tiffany06

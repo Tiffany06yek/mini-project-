@@ -9,7 +9,6 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
   echo json_encode(['ok'=>false,'msg'=>'POST required']); 
   exit;
 }
-
 // 兼容两种字段名：email 或 signInEmail
 $email    = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
@@ -27,22 +26,21 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 $stmt = mysqli_prepare(
   $conn,
-  'SELECT reg_id, first_name, last_name, email, phone_number, password_hash
-    FROM registered_user
-    WHERE email = ?'
+  'SELECT id, name, school_email, phone, password_hash
+   FROM users
+   WHERE school_email = ?'
 );
 
 mysqli_stmt_bind_param($stmt, 's', $email);
 mysqli_stmt_execute($stmt);
-mysqli_stmt_bind_result($stmt, $id, $first_name, $last_name, $db_email, $phone_num, $password_hash);
+mysqli_stmt_bind_result($stmt, $id, $name, $db_email, $phone_num, $password_hash);
 
 // 命中一行且密码匹配
 if (mysqli_stmt_fetch($stmt) && password_verify($password, $password_hash)) {
   session_regenerate_id(true);
   $_SESSION['user_id'] = $id;
   $_SESSION['email']   = $db_email;                 // 用数据库中的值
-  $_SESSION['name']    = trim("$first_name $last_name");
-
+  $_SESSION['name']    = $name;
   echo json_encode(['ok'=>true]);  
 } else {
   echo json_encode(['ok'=>false, 'msg'=>'Invalid email or password.']);

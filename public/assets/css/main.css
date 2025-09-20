@@ -63,8 +63,6 @@ header {
     width: 50%;
 }
 
-
-
 .right {
     position: relative;
     display: flex;
@@ -221,8 +219,11 @@ header {
 }
 
 .card-image img{
-    width:100%; height:100%; object-fit:cover; display:block;
-    object-position:center 35%; /* 想多显示上半部就调成 30%/20% 等 */
+    width:350%; 
+    height:380%; 
+    object-fit:cover; 
+    display:block;
+    object-position:center 45%; /* 想多显示上半部就调成 30%/20% 等 */
 }
 
 .card-content {

@@ -1,0 +1,18 @@
+INSERT INTO `merchants` (`id`, `image_url`, `name`, `type`, `tags`, `location`, `open_hours`, `delivery_fee`, `eta`, `rating`) 
+VALUES
+(16, '../design/image/thaitaro.JPG', 'Thai Taro', 'restaurant', 'Asian', 'D6-G04', '11:00am-11:00pm', 2.00, 20, 4.3),
+(17, '../design/image/undertree.JPG', 'Under Tree Chinese Cuisine', 'restaurant', 'Chinese', 'D6-G03', '11:00am-10:00pm', 2.00, 15, 3.7),
+(18, NULL, 'Let''s Kopitiam', 'restaurant', 'Asian', 'D6-G02', '11:00am-10:00pm', 2.00, 10, 3.5),
+(19, NULL, 'Lanzhou Ramen', 'restaurant', 'Asian', 'D6-105', '12:00am-9:00pm', 2.00, 25, 4.0),
+(20, NULL, 'ShuZhiWei', 'restaurant', 'Chinese', 'D6-103', '10:00am-10:00pm', 2.00, 15, 3.5),
+(21, '../design/image/xiayicheng.JPG', 'Express Delight House', 'restaurant', 'Drinks', 'D6-G05', '06:00am-12:00am', 2.00, 5, 4.3),
+(22, NULL, 'My Little Herbal Tea', 'restaurant', 'Drinks', 'D6-101', '09:00am-08:00pm', 2.00, 10, 4.6),
+(23, NULL, 'Little Cloud HK Cafe', 'restaurant', 'Western', 'D6-207', '09:00am-09:00pm', 2.00, 10, 3.5),
+(24, NULL, 'Castle in the Sky', 'restaurant', 'Drinks', 'LY3-105', '08:00am-09:00pm', 2.00, 10, 4.0),
+(25, NULL, 'Sapid', 'restaurant', 'Western', 'B1-G04', '10:00am-9:00pm', 2.00, 15, 3.3),
+(26, NULL, 'Astana Restaurant', 'restaurant', 'Halal', 'B1-G06', '12:00pm-10:00pm', 2.00, 20, 4.6),
+(27, NULL, 'Poke Bowl', 'restaurant', 'Western', 'B1-G07', '10:00am-08:00pm', 2.00, 15, 4.5),
+(28, NULL, 'Zone U Bakery', 'restaurant', 'Halal', 'B1-G08', '08:00am-07:00pm', 2.00, 5, 5.0),
+(29, NULL, 'Cita Asasi Minimart', 'grocery', NULL, 'B1-B01', '08:30am-09:30pm', 2.00, 10, 4.3),
+(30, NULL, 'Mynews.Com', 'grocery', NULL, 'D6-G01', '08:00am-09:00pm', 2.00, 5, 4.5),
+(31, NULL, 'Octobox', 'grocery', NULL, 'LY3-G10', '08:00am-02:00am', 2.00, 10, 3.3);

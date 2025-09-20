@@ -57,25 +57,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+
     // Sign In Form Handler -- PHP
-        const form = document.getElementById('signinform');
-        if (!form) return;
-      
-        form.addEventListener('submit', async (e) => {
-          e.preventDefault(); 
-      
-          if (!form.checkValidity()) { 
-            form.reportValidity(); 
-            return; }
-      
-          const btn = form.querySelector('.auth-btn');
-          const oldText = btn?.textContent || '';
-          if (btn) { 
-            btn.disabled = true; 
-            btn.textContent = 'Signing In...'; 
-            btn.style.opacity = '0.7'; 
-            
-        }
+    const form = document.getElementById('signinform');
+    if (!form) return;
+  
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault(); 
+  
+      if (!form.checkValidity()) { 
+        form.reportValidity(); 
+        return; }
+  
+      const btn = form.querySelector('.auth-btn');
+      const oldText = btn?.textContent || '';
+      if (btn) { 
+        btn.disabled = true; 
+        btn.textContent = 'Signing In...'; 
+        btn.style.opacity = '0.7'; 
+        
+    }
       
           try {
             const res = await fetch('../backend/signin.php', {
@@ -197,5 +198,4 @@ document.addEventListener('DOMContentLoaded', function() {
             this.parentElement.style.transform = 'scale(1)';
         });
     });
-
 });
