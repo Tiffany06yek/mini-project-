@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XIApee - Product Details</title>
+    <link rel="stylesheet" href="/public/assets/css/product.css">
+</head>
+
+<body>
+    <header class="container"></header>
+
+    <div class="main-container">
+        <div class="product-page-header">
+            <a href="javascript:history.back()" class="back-btn">← Back</a>
+            <h1 class="hero-title" id="product-title">Product Details</h1>
+        </div>
+
+        <div class="product-content">
+            <div class="product-image-section">
+                <div class="product-image" id="product-image">
+                    <!-- Product image will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="product-details-section">
+                <div class="product-info">
+                    <h2 class="product-name" id="product-name">Product Name</h2>
+                    <div class="product-category" id="product-category">Category</div>
+                    <div class="product-price" id="product-price">RM 0.00</div>
+                    <div class="product-description" id="product-description">
+                        Product description will appear here.
+                    </div>
+                </div>
+
+                <div class="vendor-info" id="vendor-info" style="display: none;">
+                    <div class="vendor-name" id="vendor-name">Vendor</div>
+                    <div class="vendor-meta">
+                        <span id="vendor-category">Category</span>
+                        <span>•</span>
+                        <span id="vendor-location">Location</span>
+                    </div>
+                    <div class="vendor-desc" id="vendor-desc"></div>
+                    <a class="vendor-link" id="vendor-link" href="#">View Vendor</a>
+                </div>
+
+                <div class="addons-section" id="addons-section" style="display: none;">
+                    <h3>Add-ons & Extras</h3>
+                    <div class="addons-container" id="addons-container">
+                        <!-- Addons will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="quantity-section">
+                    <h3>Quantity</h3>
+                    <div class="quantity-controls">
+                        <button class="qty-btn dec" id="qty-dec">-</button>
+                        <span class="qty-display" id="qty-display">1</span>
+                        <button class="qty-btn inc" id="qty-inc">+</button>
+                    </div>
+                </div>
+
+                <div class="price-summary">
+                    <div class="price-line">
+                        <span>Base Price:</span>
+                        <span id="base-price">RM 0.00</span>
+                    </div>
+                    <div class="price-line addons-price" id="addons-price-line" style="display: none;">
+                        <span>Add-ons:</span>
+                        <span id="addons-price">RM 0.00</span>
+                    </div>
+                    <div class="price-line total">
+                        <span>Total:</span>
+                        <span id="total-price">RM 0.00</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="add-to-cart-btn" id="add-to-cart-btn">
+                        Add to Cart
+                    </button>
+                    <button class="buy-now-btn" id="buy-now-btn">
+                        Buy Now
+                    </button>
+                </div>
+            </div>
+
+            <aside class="cart-sidebar">
+                <div class="cart-summary-card">
+                    <h3>Current Cart</h3>
+                    <div id="cart-items-mini"></div>
+                    <div class="summary-line"><span>Subtotal</span><span id="mini-subtotal">RM 0.00</span></div>
+                    <div class="summary-line"><span>Delivery Fee</span><span id="mini-delivery">RM 0.00</span></div>
+                    <div class="summary-line total"><span>Total</span><span id="mini-total">RM 0.00</span></div>
+                    <a class="view-cart-btn" href="/public/cart.php">View Cart</a>
+                </div>
+            </aside>
+        </div>
+
+        <div class="product-not-found" id="product-not-found" style="display: none;">
+            <div class="not-found-content">
+                <div class="not-found-icon">❌</div>
+                <h2>Product Not Found</h2>
+                <p>The product you're looking for doesn't exist or has been removed.</p>
+                <a href="/public/mainpage.php" class="back-to-home-btn">Back to Home</a>
+            </div>
+        </div>
+    </div>
+<script type="module" src="/public/assets/js/cart.js"></script>
+<script type="module" src="/public/assets/js/product.js"></script>
+
+</body>
+
+</html>

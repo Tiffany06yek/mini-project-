@@ -15,8 +15,8 @@ export function Header() {
 
     logo_img.href = "/dashboard"
     name.innerHTML = "XIApee"
-    home_icon.href = "/pages/login/index.html"
-    cart_icon.href = "/dashboard"
+    home_icon.href = "mainpage.php"
+    cart_icon.href = "/public/cart.html"
     tracking_icon.href = "/dashboard"
     money_icon.href = "/dashboard"
     profile.href = "/pages/profile/index.html"
@@ -24,12 +24,12 @@ export function Header() {
     search_inp.type = "text"
     search_inp.innerHTML = "Log out"
     // lens.src = "/public/icons/lens_icon.svg"
-    logo_img.style.backgroundImage = `url(../img/logo.png)`
-    home_icon.style.backgroundImage = `url(../img/home_icon.png)`
-    cart_icon.style.backgroundImage = `url(../img/cart_icon.png)`
-    tracking_icon.style.backgroundImage = `url(../img/tracking_icon.png)`
-    money_icon.style.backgroundImage = `url(../img/money_icon.png)`
-    profile.style.backgroundImage = `url(../img/profile_icon.svg)`
+    logo_img.style.backgroundImage = `url(../public/assets/img/image.png)`
+    home_icon.style.backgroundImage = `url(../public/assets/img/home_icon.png)`
+    cart_icon.style.backgroundImage = `url(../public/assets/img/cart_icon.png)`
+    tracking_icon.style.backgroundImage = `url(../public/assets/img/tracking_icon.png)`
+    money_icon.style.backgroundImage = `url(../public/assets/img/money_icon.png)`
+    profile.style.backgroundImage = `url(../public/assets/img/profile_icon.svg)`
 
     header_cont.classList.add('header_cont')
     left.classList.add('left')
@@ -56,4 +56,10 @@ export function Header() {
 
     const header = document.querySelector('header')
     header.append(header_cont)
+
+    search_inp.addEventListener('click', () => {
+        // 然后跳去 login page
+        window.location.href = "/public/login.html"
+      })
+    
 }

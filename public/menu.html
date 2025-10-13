@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XIApee - Restaurant</title>
+    <link rel="stylesheet" href="/public/assets/css/menu.css">
+</head>
+<body>
+    <header class="container"></header>
+
+    <div class="main-container">
+        <header class="container"></header>
+        <div class="restaurant-page-header">
+            <a href="javascript:history.back()" class="back-btn">← Back</a>
+            <h1 class="hero-title" id="restaurant-title">Restaurant</h1>
+        </div>
+
+        <div class="restaurant-content">
+            <div class="restaurant-info-section">
+                <div class="restaurant-image" id="restaurant-image" >
+
+                </div>
+                <div class="restaurant-details">
+                    <h2 class="restaurant-name" id="restaurant-name">Restaurant Name</h2>
+                    <div class="restaurant-meta">
+                        <span class="cuisine" id="restaurant-cuisine">Cuisine</span>
+                        <span>•</span>
+                        <span class="location" id="restaurant-location">Location</span>
+                    </div>
+                    <div class="restaurant-description" id="restaurant-description">
+                        Restaurant description will appear here.
+                    </div>
+                </div>
+            </div>
+
+            <div class="products-section">
+                <h3>Menu</h3>
+                <div class="products-grid" id="products-grid">
+                    <!-- Products will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div class="restaurant-not-found" id="restaurant-not-found" style="display: none;">
+            <div class="not-found-content">
+                <div class="not-found-icon">❌</div>
+                <h2>Restaurant Not Found</h2>
+                <p>The restaurant you're looking for doesn't exist or has been removed.</p>
+                <a href="/public/mainpage.php" class="back-to-home-btn">Back to Home</a>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/public/assets/js/menu.js"></script>
+</body>
+</html>

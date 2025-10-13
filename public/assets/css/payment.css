@@ -1,0 +1,24 @@
+/* Payment Page Styles */
+.payment-page-header { margin-bottom: 20px; }
+.payment-content { display: grid; grid-template-columns: 1.4fr 1fr; gap: 30px; max-width: 1100px; margin: 0 auto; }
+.form-card { background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 16px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-item { display:flex; flex-direction:column; gap:6px; }
+.form-item label { font-weight:600; color:#2d5a3d; }
+.form-item input, .form-item select { padding:10px 12px; border:1px solid #e0e0e0; border-radius:8px; }
+.wallet-card { display:flex; align-items:center; justify-content:space-between; background:#f8f8f8; border:1px solid #e0e0e0; border-radius:10px; padding:16px; margin-bottom: 16px; }
+.wallet-balance { font-weight:800; color:#2d5a3d; }
+.place-order-btn { width:100%; padding:14px; background:#4a7c59; color:#fff; border:none; border-radius:10px; font-weight:700; cursor:pointer; }
+.place-order-btn:hover { background:#3d6b4a; }
+.error-msg { margin-top:10px; background:#ffe6e6; color:#a10000; padding:10px; border-radius:8px; }
+.order-summary-section { position: sticky; top: 20px; height: fit-content; }
+.summary-card { background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); padding: 20px; }
+.summary-line { display:flex; justify-content:space-between; padding:6px 0; }
+.summary-line.total { border-top:2px solid #e0e0e0; margin-top:8px; padding-top:10px; font-weight:700; color:#2d5a3d; }
+.payment-history-card { background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); padding: 20px; margin-top: 20px; }
+.payment-history-card h3 { color: #2d5a3d; margin-bottom: 15px; font-size: 18px; }
+.payment-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+.payment-item:last-child { border-bottom: none; }
+.payment-date { color: #666; font-size: 12px; }
+.payment-amount { font-weight: 600; color: #2d5a3d; }
+@media (max-width: 768px) { .payment-content { grid-template-columns: 1fr; } }

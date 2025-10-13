@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XIApee - Payment</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/public/assets/css/payment.css">
+    <script type="module" src="/public/assets/js/payment.js" defer></script>
+    <script>window.addEventListener('DOMContentLoaded',()=>{import('/public/assets/js/header.js').then(m=>m.Header&&m.Header());});</script>
+</head>
+
+<body>
+    <header class="container"></header>
+    <div class="main-container">
+        <div class="payment-page-header">
+            <h1 class="hero-title">Payment</h1>
+            <p>Review your order and complete payment</p>
+        </div>
+
+        <div class="payment-content">
+            <div class="payment-form-section">
+                <div class="form-card">
+                    <h3>Customer Details</h3>
+                    <div class="form-grid">
+                        <div class="form-item">
+                            <label>Name</label>
+                            <input id="cust-name" type="text" placeholder="Full name">
+                        </div>
+                        <div class="form-item">
+                            <label>Customer Number</label>
+                            <input id="cust-number" type="text" placeholder="Axxxxxxx">
+                        </div>
+                        <div class="form-item">
+                            <label>Block / Address</label>
+                            <select id="cust-address">
+                                <option value="D1">D1</option>
+                                <option value="D2">D2</option>
+                                <option value="D3">D3</option>
+                                <option value="D4">D4</option>
+                                <option value="D5">D5</option>
+                                <option value="LY1">LY1</option>
+                                <option value="LY2">LY2</option>
+                                <option value="LY4">LY4</option>
+                                <option value="LY5">LY5</option>
+                                <option value="LY6">LY6</option>
+                                <option value="LY7">LY7</option>
+                                <option value="LY8">LY8</option>
+                                <option value="LY9">LY9</option>
+                                <option value="custom">Other (manual)</option>
+                            </select>
+                        </div>
+                        <div class="form-item" id="manual-address-wrap" style="display:none;">
+                            <label>Manual Address</label>
+                            <input id="manual-address" type="text" placeholder="Enter full address">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wallet-card">
+                    <div>
+                        <h3>Wallet</h3>
+                        <small>Balance updates after placing order</small>
+                    </div>
+                    <div class="wallet-balance" id="wallet-balance">RM 0.00</div>
+                </div>
+
+                <button class="place-order-btn" id="place-order-btn">Place Order</button>
+                <div class="error-msg" id="error-msg" style="display:none;"></div>
+            </div>
+
+            <aside class="order-summary-section">
+                <div class="summary-card">
+                    <h3>Order Summary</h3>
+                    <div id="summary-items"></div>
+                    <div class="summary-line"><span>Subtotal</span><span id="sum-subtotal">RM 0.00</span></div>
+                    <div class="summary-line"><span>Delivery Fee</span><span id="sum-delivery">RM 0.00</span></div>
+                    <div class="summary-line total"><span>Total</span><span id="sum-total">RM 0.00</span></div>
+                </div>
+                
+                <div class="payment-history-card">
+                    <h3>Recent Payments</h3>
+                    <div id="payment-history">
+                        <!-- Payment history will be populated by JavaScript -->
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+</body>
+
+</html>
