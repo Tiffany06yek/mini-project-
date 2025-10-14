@@ -45,6 +45,32 @@ let selectedAddons = [];
 let quantity = 1;
 let currentVendor = null;
 
+function resolveVendorInfo() {
+    const vendorId = currentVendor?.vendorId
+        ?? currentProduct?.vendorId
+        ?? currentProduct?.vendor_id
+        ?? currentProduct?.merchant_id
+        ?? null;
+
+    const vendorType = currentVendor?.vendorType
+        ?? currentProduct?.vendorType
+        ?? currentProduct?.vendor_type
+        ?? (vendorId ? 'restaurant' : 'vendor');
+
+    return {
+        vendorId,
+        vendorName: currentVendor?.vendorName
+            ?? currentProduct?.vendorName
+            ?? currentProduct?.merchant_name
+            ?? currentProduct?.restaurant_name
+            ?? null,
+        vendorType,
+        vendorLocation: currentVendor?.vendorLocation
+            ?? currentProduct?.vendorLocation
+            ?? currentProduct?.location
+            ?? null
+    };
+}
 // Helpers
 function getParams() {
     const params = new URLSearchParams(window.location.search);
@@ -123,7 +149,10 @@ function renderAddons(addons) {
     selectedAddons = [];
 
     // delegate change events (works for dynamically created checkboxes)
-    addonsContainer.addEventListener('change', onAddonChange);
+    if (!addonsContainer.dataset.bound) {
+        addonsContainer.addEventListener('change', onAddonChange);
+        addonsContainer.dataset.bound = '1';
+    }
 }
 
 function onAddonChange(e) {
@@ -212,6 +241,8 @@ function handleAddToCart() {
         alert('Failed to load product');
         return;
       }
+
+      const vendorInfo = resolveVendorInfo();
   
       // 构造传给 cart 的 product 对象（保持和 cart.addItem 期望字段一致）
       const productForCart = {
@@ -220,16 +251,11 @@ function handleAddToCart() {
         name: currentProduct.name ?? '',
         price: Number(currentProduct.price || 0),
         icon: currentProduct.icon || currentProduct.image_url || null,
-        category: currentProduct.category || ''
-      };
-  
-      // vendor 信息（确保字段名 vendorId / vendorName）
-      const vendorInfo = {
-        vendorId: currentVendor?.vendorId ?? currentVendor?.vendor_id ?? currentVendor?.id ?? null,
-        vendorName: currentVendor?.vendorName ?? currentVendor?.name ?? null,
-        vendorType: currentVendor?.vendorType ?? currentVendor?.type ?? 'vendor',
-        vendorLocation: currentVendor?.vendorLocation ?? currentVendor?.location ?? null
-      };
+        category: currentProduct.category || '',
+        vendorId: vendorInfo.vendorId,
+        vendorType: vendorInfo.vendorType,
+        vendorName: vendorInfo.vendorName,
+        vendorLocation: vendorInfo.vendorLocation};
   
       // add quantity in one call (cart.addItem handles qty argument)
       const qty = Number(quantity || 1);
@@ -255,6 +281,7 @@ function handleAddToCart() {
   
     btn.addEventListener('click', () => {
       if (!currentProduct) return;
+      const vendorInfo = resolveVendorInfo();
   
       const productForCart = {
         id: currentProduct.product_id ?? currentProduct.id ?? currentProduct.productId,
@@ -262,14 +289,11 @@ function handleAddToCart() {
         name: currentProduct.name ?? '',
         price: Number(currentProduct.price || 0),
         icon: currentProduct.icon || currentProduct.image_url || null,
-        category: currentProduct.category || ''
-      };
-  
-      const vendorInfo = {
-        vendorId: currentVendor?.vendorId ?? currentVendor?.vendor_id ?? currentVendor?.id ?? null,
-        vendorName: currentVendor?.vendorName ?? currentVendor?.name ?? null,
-        vendorType: currentVendor?.vendorType ?? currentVendor?.type ?? 'vendor',
-        vendorLocation: currentVendor?.vendorLocation ?? currentVendor?.location ?? null
+        category: currentProduct.category || '',
+        vendorId: vendorInfo.vendorId,
+        vendorType: vendorInfo.vendorType,
+        vendorName: vendorInfo.vendorName,
+        vendorLocation: vendorInfo.vendorLocation
       };
   
       const qty = Number(quantity || 1);
@@ -337,8 +361,6 @@ function renderMiniCart() {
     miniTotal.textContent = `RM ${summary.total.toFixed(2)}`;
 }
 
-
-
 // Init - fetch product from backend
 document.addEventListener('DOMContentLoaded', async () => {
     const { productId } = getParams();
@@ -367,7 +389,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         p.name = p.name ?? p.product_name ?? '';
         p.description = p.description ?? p.desc ?? '';
         p.price = Number(p.price ?? 0);
-        p.image_url = `/public/assets/img/food_image/${p.image_url}`;
+        p.image_url = p.image_url
+            ? `/public/assets/img/food_image/${p.image_url}`
+            : '';
+
+        const vendorIdFromProduct = p.merchant_id ?? p.vendor_id ?? p.vendorId ?? null;
+        if (vendorIdFromProduct) {
+            p.vendorId = vendorIdFromProduct;
+            p.vendor_id = vendorIdFromProduct;
+        }
 
         // normalize addons: map id/name/price into {id, name, price}
         const rawAddons = data.addons || [];
@@ -389,8 +419,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 cuisine: data.vendor.cuisine ?? data.vendor.category ?? '',
                 description: data.vendor.description ?? ''
             };
-        } else {
-            currentVendor = null;
+        } else if (vendorIdFromProduct) {
+            currentVendor = {
+                vendorType: 'restaurant',
+                vendorId: vendorIdFromProduct,
+                vendorName: p.vendorName ?? p.merchant_name ?? p.restaurant_name ?? '',
+                vendorLocation: p.vendorLocation ?? p.location ?? '',
+                cuisine: p.category ?? p.cuisine ?? p.tags ?? '',
+                description: p.description ?? ''
+            };currentVendor = null;
         }
 
         // render UI
@@ -399,10 +436,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         handleQuantityControls();
         handleAddToCart();
         handleBuyNow();
-
-        // cart listeners
-        globalCart.addListener(renderMiniCart);
-        renderMiniCart();
 
     } catch (err) {
         console.error('Failed to load product', err);
@@ -424,4 +457,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderMiniCart();
 
 });
-

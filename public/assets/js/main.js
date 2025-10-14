@@ -146,4 +146,3 @@ document.querySelectorAll('.tab').forEach(tab => {
          this.style.transform = 'translateY(0)';
      });
  });
-

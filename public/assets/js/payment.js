@@ -1,5 +1,9 @@
+import { Header } from '/public/assets/js/header.js';
 import { globalCart } from '/public/assets/js/cart.js';
 
+Header();
+
+let db = {};
 let currentUser = null;
 
 const nameInput = document.getElementById('cust-name');
@@ -16,44 +20,97 @@ const sumDelivery = document.getElementById('sum-delivery');
 const sumTotal = document.getElementById('sum-total');
 const paymentHistory = document.getElementById('payment-history');
 
-function loadCartSummary() {
-    const items = globalCart.getItems();
-    summaryItems.innerHTML = items.map(it => `
-        <div class="summary-item">
-            <div>
-                <div class="name">${it.name} × ${it.qty}</div>
-                ${it.addons?.length ? `<div class="addons">${it.addons.map(a=>` + ${a.name}`).join(', ')}</div>` : ''}
-                ${it.vendorName ? `<div class="vendor">${it.vendorName}</div>` : ''}
+function formatCurrency(value) {
+    return `RM ${Number(value || 0).toFixed(2)}`;
+}
+
+function escapeHtml(str) {
+    if (str === undefined || str === null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function renderSummaryItem(item) {
+    const qty = Number(item.qty || 0);
+    const price = Number(item.price || 0) * qty;
+    const vendorInfo = item.vendorName
+        ? `<div class="ci-vendor">${escapeHtml(item.vendorName)}${item.vendorLocation ? ` • ${escapeHtml(item.vendorLocation)}` : ''}</div>`
+        : '';
+    const addons = Array.isArray(item.addons) && item.addons.length > 0
+        ? `<div class="ci-addons">${item.addons.map(addon => `<span class="addon">+ ${escapeHtml(addon.name || '')}</span>`).join('')}</div>`
+        : '';
+
+    return `
+        <div class="order-item">
+            <div class="ci-details">
+                <div class="ci-title">${vendorInfo}${escapeHtml(item.name)} × ${qty}</div>
+                ${addons}
             </div>
-            <div class="price">RM ${(it.price * it.qty).toFixed(2)}</div>
+            <div class="ci-price">${formatCurrency(price)}</div>
         </div>
-    `).join('') || '<div class="empty">Cart is empty</div>';
+    `;
+}
+
+function loadCartSummary() {
+    if (!summaryItems || !sumSubtotal || !sumDelivery || !sumTotal) {
+        return;
+    }
+    const items = globalCart.getItems();
+    if (!Array.isArray(items) || items.length === 0) {
+        summaryItems.innerHTML = '<div class="empty">Cart is empty</div>';
+        sumSubtotal.textContent = formatCurrency(0);
+        sumDelivery.textContent = formatCurrency(0);
+        sumTotal.textContent = formatCurrency(0);
+        if (placeBtn) placeBtn.disabled = true;
+        return;
+    }
+
+    summaryItems.innerHTML = items.map(renderSummaryItem).join('');
     const s = globalCart.getCartSummary();
-    sumSubtotal.textContent = `RM ${s.subtotal.toFixed(2)}`;
-    sumDelivery.textContent = `RM ${s.deliveryFee.toFixed(2)}`;
-    sumTotal.textContent = `RM ${s.total.toFixed(2)}`;
+    sumSubtotal.textContent = formatCurrency(s.subtotal);
+    sumDelivery.textContent = formatCurrency(s.deliveryFee);
+    sumTotal.textContent = formatCurrency(s.total);
+    if (placeBtn) placeBtn.disabled = false;
+}
+
+function handleCartUpdate() {
+    loadCartSummary();
 }
 
 async function loadDB() {
-    const res = await fetch('/data/db.json');
+    const res = await fetch('/backend/database.php');
     db = await res.json();
     currentUser = db.users?.[0] || null;
 }
 
+
 function autofillUser() {
     if (!currentUser) return;
-    nameInput.value = currentUser.name || '';
-    numberInput.value = currentUser.customerNumber || '';
+    if (nameInput) nameInput.value = currentUser.name || '';
+    if (numberInput) numberInput.value = currentUser.customerNumber || '';
+
     // Address select
-    if (currentUser.address) {
+    if (currentUser.address && addressSelect) {
         const lower = String(currentUser.address).toLowerCase();
         const opt = Array.from(addressSelect.options).find(o => o.value.toLowerCase() === lower);
-        if (opt) addressSelect.value = opt.value; else { addressSelect.value = 'custom'; manualWrap.style.display = 'block'; manualAddress.value = String(currentUser.address); }
+        if (opt) {
+            addressSelect.value = opt.value;
+        } else if (manualWrap && manualAddress) {
+            addressSelect.value = 'custom';
+            manualWrap.style.display = 'block';
+            manualAddress.value = String(currentUser.address);
+        }
     }
-    walletBalance.textContent = `RM ${(currentUser.balance ?? 0).toFixed(2)}`;
+    if (walletBalance) walletBalance.textContent = `RM ${(currentUser.balance ?? 0).toFixed(2)}`;
+
 }
 
 function loadPaymentHistory() {
+    if (!paymentHistory) return;
     const orders = currentUser?.orderHistory || [];
     const recentOrders = orders.slice(-5).reverse(); // Last 5 orders
     
@@ -74,15 +131,22 @@ function loadPaymentHistory() {
 }
 
 function bindControls() {
+    if (!addressSelect) return;
     addressSelect.addEventListener('change', () => {
+        if (!manualWrap) return;
         if (addressSelect.value === 'custom') { manualWrap.style.display = 'block'; }
         else { manualWrap.style.display = 'none'; }
     });
 }
 
 function makeOrderPayload() {
-    const addressValue = addressSelect.value === 'custom' ? (manualAddress.value || '') : addressSelect.value;
-    const items = globalCart.getItems().map(it => ({
+    const addressValue = addressSelect
+        ? (addressSelect.value === 'custom'
+            ? ((manualAddress && manualAddress.value) || '')
+            : addressSelect.value)
+        : ((manualAddress && manualAddress.value) || '');
+    const rawItems = globalCart.getItems();
+    const items = rawItems.map(it => ({
         id: it.id,
         productId: it.productId,
         name: it.name,
@@ -126,8 +190,13 @@ function getEffectiveDB() {
 }
 
 async function placeOrder() {
+    if (errorMsg) errorMsg.style.display = 'none';
     const effDB = getEffectiveDB();
     const order = makeOrderPayload();
+    if (!order.items || order.items.length === 0) {
+        showError('Your cart is empty.');
+        return;
+    }
     if (!currentUser) { showError('No user found.'); return; }
     if (!order.dropOff) { showError('Please provide a drop-off address.'); return; }
     // Balance check
@@ -143,7 +212,9 @@ async function placeOrder() {
     const newDB = { ...effDB, users, orders };
     simulateWriteBack(newDB);
     // Update UI
-    walletBalance.textContent = `RM ${updatedUser.balance.toFixed(2)}`;
+    if (walletBalance) {
+        walletBalance.textContent = `RM ${updatedUser.balance.toFixed(2)}`;
+    }
     // Clear cart
     globalCart.clear();
     // Redirect to tracking
@@ -151,18 +222,28 @@ async function placeOrder() {
 }
 
 function showError(msg) {
+    if (!errorMsg) return;
     errorMsg.textContent = msg;
     errorMsg.style.display = 'block';
 }
 
+
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadDB();
+    try {
+        await loadDB();
+    } catch (err) {
+        console.warn('loadDB failed', err);
+    }
     // Prefer override DB if exists
     const eff = getEffectiveDB();
     if (eff) { db = eff; currentUser = eff.users?.[0] || currentUser; }
     autofillUser();
-    loadCartSummary();
+    handleCartUpdate();
     loadPaymentHistory();
     bindControls();
-    placeBtn.addEventListener('click', placeOrder);
+    if (placeBtn) {
+        placeBtn.addEventListener('click', placeOrder);
+    }
+    globalCart.addListener(handleCartUpdate);
+    window.addEventListener('xiapee.cart.updated', handleCartUpdate);
 });

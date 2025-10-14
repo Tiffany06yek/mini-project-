@@ -5,16 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>XIApee - Payment</title>
-    <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/public/assets/css/payment.css">
     <script type="module" src="/public/assets/js/payment.js" defer></script>
-    <script>window.addEventListener('DOMContentLoaded',()=>{import('/public/assets/js/header.js').then(m=>m.Header&&m.Header());});</script>
+    <script type="module" src="/public/assets/js/cart.js" defer></script>
+    <script>window.addEventListener('DOMContentLoaded', () => {import('/public/assets/js/header.js').then(m => m.Header && m.Header());});</script>
 </head>
 
 <body>
     <header class="container"></header>
     <div class="main-container">
         <div class="payment-page-header">
+            <a href="javascript:history.back()" class="back-btn">← Back</a>
             <h1 class="hero-title">Payment</h1>
             <p>Review your order and complete payment</p>
         </div>
@@ -35,6 +36,7 @@
                         <div class="form-item">
                             <label>Block / Address</label>
                             <select id="cust-address">
+                                <!-- Options for the address selection -->
                                 <option value="D1">D1</option>
                                 <option value="D2">D2</option>
                                 <option value="D3">D3</option>
@@ -51,7 +53,7 @@
                                 <option value="custom">Other (manual)</option>
                             </select>
                         </div>
-                        <div class="form-item" id="manual-address-wrap" style="display:none;">
+                        <div class="form-item" id="manual-address-wrap">
                             <label>Manual Address</label>
                             <input id="manual-address" type="text" placeholder="Enter full address">
                         </div>
@@ -63,7 +65,7 @@
                         <h3>Wallet</h3>
                         <small>Balance updates after placing order</small>
                     </div>
-                    <div class="wallet-balance" id="wallet-balance">RM 0.00</div>
+                    <div class="wallet-balance" id="wallet-balance">RM 50.00</div>
                 </div>
 
                 <button class="place-order-btn" id="place-order-btn">Place Order</button>

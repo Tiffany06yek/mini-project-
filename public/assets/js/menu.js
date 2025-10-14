@@ -4,7 +4,16 @@ import { Header } from '/public/assets/js/header.js';
 Header();
 
 // ---------- 配置：确保这个路径与后端实际文件一致 ----------
-const API_PATH = '/public/get_restaurant.php'; // <--- 如果你的 API 在 /api/get_restaurant.php，把这里改成那个路径
+const PUBLIC_BASE = (() => {
+  const marker = '/public/';
+  const path = window.location.pathname;
+  const idx = path.indexOf(marker);
+  if (idx !== -1) {
+    return path.slice(0, idx + marker.length - 1);
+  }
+  return '';
+})();
+const API_PATH = `${PUBLIC_BASE}/get_restaurant.php`; // 
 
 // DOM elements
 const restaurantTitle = document.getElementById('restaurant-title');

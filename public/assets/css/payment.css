@@ -13,6 +13,15 @@
 .error-msg { margin-top:10px; background:#ffe6e6; color:#a10000; padding:10px; border-radius:8px; }
 .order-summary-section { position: sticky; top: 20px; height: fit-content; }
 .summary-card { background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); padding: 20px; }
+.summary-card .summary-item { display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid #f0f0f0; }
+.summary-card .summary-item:last-child { border-bottom:none; }
+.summary-card .summary-item .details { flex:1; }
+.summary-card .summary-item .name { font-weight:600; color:#333; }
+.summary-card .summary-item .vendor { color:#2d5a3d; font-size:12px; margin-top:2px; }
+.summary-card .summary-item .addons { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; font-size:12px; color:#555; }
+.summary-card .summary-item .addon { background:#eef2ef; padding:2px 6px; border-radius:6px; }
+.summary-card .summary-item .price { font-weight:600; color:#2d5a3d; white-space:nowrap; }
+.summary-card .empty { text-align:center; color:#666; padding:12px 0; }
 .summary-line { display:flex; justify-content:space-between; padding:6px 0; }
 .summary-line.total { border-top:2px solid #e0e0e0; margin-top:8px; padding-top:10px; font-weight:700; color:#2d5a3d; }
 .payment-history-card { background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); padding: 20px; margin-top: 20px; }
@@ -22,3 +31,114 @@
 .payment-date { color: #666; font-size: 12px; }
 .payment-amount { font-weight: 600; color: #2d5a3d; }
 @media (max-width: 768px) { .payment-content { grid-template-columns: 1fr; } }
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: #f0f0f0;
+    color: #333;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.header_cont {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: 15px;
+}
+
+.search_inp {
+    width: 100px;
+    height: 40px;
+    border-radius: 20px;
+    border: 1px solid #E2EAF1;
+    background-color: #4a7c59;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    
+}
+
+.left p{
+    font-size: 30px;
+    font-weight: 800;
+    color: #2d5a3d;
+}
+
+.order-summary {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.order-item .ci-details {
+    max-width: 80%;
+}
+
+.ci-title {
+    font-weight: bold;
+    color: #333;
+    font-size: 16px;
+}
+
+.ci-vendor {
+    font-size: 17px;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+.ci-addons {
+    font-size: 14px;
+    color: #555;
+    margin-top: 5px;
+}
+
+.addon {
+    background-color: #f1f1f1;
+    border-radius: 5px;
+    padding: 2px 8px;
+    margin-right: 5px;
+}
+
+.ci-price {
+    font-size: 18px;
+    color: #333;
+    font-weight: bold;
+}
+
+.order-summary .subtotal,
+.order-summary .delivery-fee,
+.order-summary .total {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 2px solid #ddd;
+}
+
+.order-summary .delivery-fee {
+    font-size: 16px;
+    color: #555;
+}
+
+.order-summary .total {
+    font-size: 20px;
+    color: #000;
+    font-weight: bold;
+    margin-top: 10px;
+}

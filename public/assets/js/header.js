@@ -16,7 +16,7 @@ export function Header() {
     logo_img.href = "/dashboard"
     name.innerHTML = "XIApee"
     home_icon.href = "mainpage.php"
-    cart_icon.href = "/public/cart.html"
+    cart_icon.href = "/public/cart.php"
     tracking_icon.href = "/dashboard"
     money_icon.href = "/dashboard"
     profile.href = "/pages/profile/index.html"

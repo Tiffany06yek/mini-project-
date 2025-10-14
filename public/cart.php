@@ -96,6 +96,7 @@ $total = $subtotal + $deliveryFee;
   <header class="container"></header>
 
   <div class="main-container">
+  <a href="javascript:history.back()" class="back-btn">← Back</a>
     <div class="cart-page-header">
       <h1 class="hero-title">Shopping Cart</h1>
       <p class="cart-subtitle">Review your items before checkout</p>

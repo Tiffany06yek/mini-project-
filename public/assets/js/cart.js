@@ -1,7 +1,6 @@
-// /public/assets/js/cart.js
-// ES module: export const globalCart and export function createCart(selector)
+import { Header } from "/public/assets/js/header.js";
+Header()
 
-// Configuration
 const STORAGE_KEY = 'xiapee_cart';
 const API_PATH = '/public/cart_api.php'; // optional backend endpoint
 
@@ -85,8 +84,6 @@ class CartManager {
     }
   }
 
-
-
   notifyListeners() {
     const items = this.getItems();
     const total = this.getTotal(); // subtotal
@@ -138,6 +135,28 @@ class CartManager {
     const id = this.generateItemId(product, addons, vendorInfo);
     const existing = this.items.get(id);
     const addQty = Math.max(1, Number(qty) || 1);
+
+    const resolvedVendorId = vendorInfo?.vendorId
+      ?? product.vendorId
+      ?? product.vendor_id
+      ?? product.restaurant_id
+      ?? null;
+
+    const resolvedVendorType = vendorInfo?.vendorType
+      ?? product.vendorType
+      ?? product.vendor_type
+      ?? (resolvedVendorId ? 'restaurant' : 'vendor');
+
+    const resolvedVendorName = vendorInfo?.vendorName
+      ?? product.vendorName
+      ?? product.merchant_name
+      ?? product.restaurant_name
+      ?? null;
+
+    const resolvedVendorLocation = vendorInfo?.vendorLocation
+      ?? product.vendorLocation
+      ?? product.location
+      ?? null;
   
     if (existing) {
       existing.qty = (existing.qty || 0) + addQty;
@@ -154,10 +173,10 @@ class CartManager {
         icon: product.icon || product.image_url || null,
         category: product.category || '',
         // 兼容多种来源字段（优先 vendorInfo，再看 product 的多种命名）
-        vendorId: vendorInfo.vendorId ?? product.vendorId ?? product.restaurant_id ?? product.vendor_id ?? null,
-        vendorName: vendorInfo.vendorName ?? product.vendorName ?? null,
-        vendorType: vendorInfo.vendorType ?? product.vendorType ?? product.vendor_type ?? 'vendor',
-        vendorLocation: vendorInfo.vendorLocation ?? product.vendorLocation ?? null
+        vendorId: resolvedVendorId,
+        vendorName: resolvedVendorName,
+        vendorType: resolvedVendorType,
+        vendorLocation: resolvedVendorLocation
       });
     }
   
@@ -235,11 +254,6 @@ class CartManager {
 // singleton
 export const globalCart = new CartManager();
 
-/**
- * createCart(containerSelector, options)
- * - containerSelector: css selector for the cart area, e.g. '#cart-container'
- * - options: { checkoutUrl: string } optional
- */
 export function createCart(containerSelector, options = {}) {
   const container = document.querySelector(containerSelector);
   if (!container) {
