@@ -1,5 +1,6 @@
 import { Header } from "/public/assets/js/header.js";
 import { ProductCard } from "/public/assets/js/productcard.js";
+
 Header() 
 ProductCard()
 ProductCard()
@@ -10,7 +11,6 @@ ProductCard()
 ProductCard()
 ProductCard()
 ProductCard()
-Header();
 
 let db = null;
 let currentRestaurant = null;

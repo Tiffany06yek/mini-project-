@@ -82,9 +82,46 @@ function handleCartUpdate() {
 }
 
 async function loadDB() {
-    const res = await fetch('/backend/database.php');
-    db = await res.json();
-    currentUser = db.users?.[0] || null;
+    let payload = null;
+    try {
+        const res = await fetch('/backend/database.php', { credentials: 'include' });
+        payload = await res.json();
+        if (!res.ok) {
+            throw new Error(payload?.message || `Failed to load user data (HTTP ${res.status})`);
+        }
+    } catch (err) {
+        console.warn('loadDB request failed', err);
+        return;
+    }
+
+    if (!payload || typeof payload !== 'object') {
+        return;
+    }
+
+    db = payload;
+
+    const userCandidates = [];
+    if (payload.currentUser) userCandidates.push(payload.currentUser);
+    if (Array.isArray(payload.users)) {
+        userCandidates.push(...payload.users);
+    }
+
+    const resolved = userCandidates.find(u => u && (u.id || u.userId));
+    if (resolved) {
+        const history = Array.isArray(resolved.orderHistory)
+            ? resolved.orderHistory
+            : Array.isArray(payload.orders)
+                ? payload.orders
+                : [];
+        currentUser = {
+            ...resolved,
+            id: resolved.id ?? resolved.userId,
+            customerNumber: resolved.customerNumber ?? resolved.phone ?? resolved.school_email ?? '',
+            address: resolved.address ?? resolved.default_address ?? '',
+            balance: Number(resolved.balance ?? resolved.walletBalance ?? 0),
+            orderHistory: history
+        };
+    }
 }
 
 
@@ -105,6 +142,7 @@ function autofillUser() {
             manualAddress.value = String(currentUser.address);
         }
     }
+    currentUser.balance = 500;
     if (walletBalance) walletBalance.textContent = `RM ${(currentUser.balance ?? 0).toFixed(2)}`;
 
 }
@@ -160,17 +198,26 @@ function makeOrderPayload() {
     }));
     const summary = globalCart.getCartSummary();
     const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substring(2,7).toUpperCase()}`;
-    const staff = db.staff?.[0] || null;
+    const merchantIds = new Set();
+    items.forEach(item => {
+        if (item.vendorId !== undefined && item.vendorId !== null && item.vendorId !== '') {
+            merchantIds.add(item.vendorId);
+        }
+    });
+
     return {
         id: orderId,
-        userId: currentUser?.id || 'u1',
+        userId: currentUser?.id || 0,
+        customerName: nameInput?.value?.trim() || '',
+        customerNumber: numberInput?.value?.trim() || '',
         items,
-        subtotal: summary.subtotal,
-        deliveryFee: summary.deliveryFee,
-        total: summary.total,
-        status: 'Order Confirmed',
-        staffId: staff?.id,
-        staff,
+        subtotal: Number(summary.subtotal || 0),
+        deliveryFee: Number(summary.deliveryFee || 0),
+        total: Number(summary.total || 0),
+        paymentMethod: 'wallet',
+        paymentStatus: 'paid',
+        orderStatus: 'placed',
+        merchantId: merchantIds.size === 1 ? Array.from(merchantIds)[0] : null,
         dropOff: addressValue,
         timestamp: new Date().toISOString()
     };
@@ -197,28 +244,58 @@ async function placeOrder() {
         showError('Your cart is empty.');
         return;
     }
-    if (!currentUser) { showError('No user found.'); return; }
-    if (!order.dropOff) { showError('Please provide a drop-off address.'); return; }
+    if (!currentUser || !currentUser.id) {
+        showError('No user found.');
+        return;
+    }
+    if (!order.dropOff) {
+        showError('Please provide a drop-off address.');
+        return;
+    }
     // Balance check
     const balance = Number(currentUser.balance ?? 0);
-    if (balance < order.total) {
+    if (!Number.isNaN(balance) && balance < Number(order.total || 0)) {
         showError('Insufficient balance. Please remove items or top up.');
         return;
     }
     // Deduct and update
-    const updatedUser = { ...currentUser, name: nameInput.value || currentUser.name, customerNumber: numberInput.value || currentUser.customerNumber, address: order.dropOff, balance: Number((balance - order.total).toFixed(2)), orderHistory: [...(currentUser.orderHistory||[]), order] };
-    const users = (effDB.users||[]).map(u => u.id === updatedUser.id ? updatedUser : u);
-    const orders = [...(effDB.orders||[]), order];
-    const newDB = { ...effDB, users, orders };
-    simulateWriteBack(newDB);
-    // Update UI
-    if (walletBalance) {
-        walletBalance.textContent = `RM ${updatedUser.balance.toFixed(2)}`;
+    try {
+        const response = await fetch('/public/payment.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(order)
+        });
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok || !result.success) {
+            throw new Error(result?.message || `Failed to place order (HTTP ${response.status}).`);
+        }
+
+        const newBalance = balance - Number(order.total || 0);
+        if (!Number.isNaN(newBalance) && walletBalance) {
+            walletBalance.textContent = formatCurrency(Math.max(newBalance, 0));
+        }
+        const orderHistory = Array.isArray(currentUser.orderHistory)
+            ? [...currentUser.orderHistory]
+            : [];
+        orderHistory.push({ ...order, id: result.orderId ?? order.id });
+
+        currentUser = {
+            ...currentUser,
+            name: nameInput.value || currentUser.name,
+            customerNumber: numberInput.value || currentUser.customerNumber,
+            address: order.dropOff,
+            balance: newBalance,
+            orderHistory
+        };
+
+        globalCart.clear();
+        const redirectId = result.orderId ?? order.id;
+        window.location.href = `/public.tracking.html?id=${encodeURIComponent(redirectId)}`;
+    } catch (err) {
+        console.error('placeOrder failed', err);
+        showError(err.message || 'Failed to place order. Please try again.');
     }
-    // Clear cart
-    globalCart.clear();
-    // Redirect to tracking
-    window.location.href = `/pages/tracking/index.html?id=${order.id}`;
 }
 
 function showError(msg) {
