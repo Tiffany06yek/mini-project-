@@ -19,7 +19,7 @@ if (!is_array($data)) {
     http_response_code(400);
     echo json_encode([
         'success' => false,
-        'message' => 'Incorrect Order Data。'
+        'message' => 'Order data格式不正确。'
     ]);
     exit;
 }
@@ -29,7 +29,7 @@ if (!is_array($items) || count($items) === 0) {
     http_response_code(400);
     echo json_encode([
         'success' => false,
-        'message' => 'You cannot checkout with empty cart。'
+        'message' => '购物车是空的，不能下单。'
     ]);
     exit;
 }
@@ -39,7 +39,7 @@ if ($dropOff === '') {
     http_response_code(400);
     echo json_encode([
         'success' => false,
-        'message' => 'Please fill in the dropOff location.'
+        'message' => '请填写送达地点。'
     ]);
     exit;
 }
@@ -52,7 +52,7 @@ if ($subtotal <= 0 || $total <= 0) {
     http_response_code(400);
     echo json_encode([
         'success' => false,
-        'message' => 'Insufficient Balance.'
+        'message' => '金额有问题，请确认后再试。'
     ]);
     exit;
 }
@@ -61,13 +61,18 @@ $orderId = uniqid('ORD');
 $order = [
     'id' => $orderId,
     'userId' => $data['userId'] ?? 0,
+    'customerName' => trim((string)($data['customerName'] ?? '')),
+    'customerNumber' => trim((string)($data['customerNumber'] ?? '')),
     'items' => $items,
     'subtotal' => $subtotal,
     'deliveryFee' => $deliveryFee,
     'total' => $total,
     'paymentMethod' => $data['paymentMethod'] ?? 'wallet',
     'paymentStatus' => $data['paymentStatus'] ?? 'paid',
+    'orderStatus' => $data['orderStatus'] ?? 'preparing',
+    'merchantId' => $data['merchantId'] ?? null,
     'dropOff' => $dropOff,
+    'timestamp' => $data['timestamp'] ?? date('c'),
     'createdAt' => date('c'),
 ];
 

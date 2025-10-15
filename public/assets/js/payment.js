@@ -230,6 +230,82 @@ function getEffectiveDB() {
     return db;
 }
 
+function getCourierList() {
+    if (Array.isArray(db?.couriers) && db.couriers.length > 0) {
+        return db.couriers;
+    }
+    const override = getEffectiveDB();
+    if (override && Array.isArray(override.couriers) && override.couriers.length > 0) {
+        return override.couriers;
+    }
+    return DEFAULT_COURIERS;
+}
+
+function selectCourierForOrder(merchantId) {
+    const list = getCourierList();
+    if (!Array.isArray(list) || list.length === 0) {
+        return { name: 'Assigned Courier', phone: '' };
+    }
+    if (!merchantId) {
+        const first = list[0];
+        return { name: first?.name || 'Assigned Courier', phone: first?.phone || '' };
+    }
+    const needle = merchantId.toString();
+    const courier = list.find(item => {
+        const id = item?.merchant_id ?? item?.merchantId ?? item?.id;
+        return id && id.toString() === needle;
+    }) || list[0];
+    return { name: courier?.name || 'Assigned Courier', phone: courier?.phone || '' };
+}
+
+function normaliseTrackingItems(items) {
+    if (!Array.isArray(items)) return [];
+    return items.map(item => ({
+        id: item.id ?? item.productId ?? item.name,
+        name: item.name ?? 'Item',
+        qty: Number(item.qty ?? 0),
+        price: Number(item.price ?? 0)
+    }));
+}
+
+function persistOrderForTracking(orderRecord) {
+    try {
+        const base = getEffectiveDB() || {};
+        const orders = Array.isArray(base.orders)
+            ? base.orders.filter(o => (o?.id || '').toString() !== (orderRecord.id || '').toString())
+            : [];
+        orders.push(orderRecord);
+
+        let users = Array.isArray(base.users) ? base.users.map(user => {
+            const userId = user?.id ?? user?.userId;
+            if (userId !== orderRecord.userId) {
+                return user;
+            }
+            const history = Array.isArray(user.orderHistory)
+                ? user.orderHistory.filter(o => (o?.id || '').toString() !== (orderRecord.id || '').toString())
+                : [];
+            history.push(orderRecord);
+            return { ...user, orderHistory: history };
+        }) : [];
+
+        if (!users.length && orderRecord.userId) {
+            users = [{
+                id: orderRecord.userId,
+                name: currentUser?.name || '',
+                phone: currentUser?.customerNumber || currentUser?.phone || '',
+                orderHistory: [orderRecord]
+            }];
+        }
+
+        const couriers = getCourierList();
+        const snapshot = { ...base, orders, users, couriers };
+        localStorage.setItem('xiapee_db_override', JSON.stringify(snapshot));
+        db = snapshot;
+    } catch (err) {
+        console.warn('persistOrderForTracking failed', err);
+    }
+}
+
 async function placeOrder() {
     if (errorMsg) errorMsg.style.display = 'none';
     const effDB = getEffectiveDB();
@@ -279,6 +355,21 @@ async function placeOrder() {
             balance: newBalance,
             orderHistory
         };
+
+        const trackingOrder = {
+            id: result.orderId ?? order.id,
+            userId: currentUser.id || order.userId || 0,
+            status: 'Order Confirmed',
+            dropOff: order.dropOff,
+            staff: selectCourierForOrder(order.merchantId),
+            items: normaliseTrackingItems(order.items),
+            subtotal: Number(order.subtotal || 0),
+            deliveryFee: Number(order.deliveryFee || 0),
+            total: Number(order.total || 0),
+            timestamp: new Date().toISOString()
+        };
+        persistOrderForTracking(trackingOrder);
+
 
         globalCart.clear();
         const redirectId = result.orderId ?? order.id;
