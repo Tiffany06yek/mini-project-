@@ -1,6 +1,7 @@
 --Orders Table
 CREATE TABLE IF NOT EXISTS orders (
   id              INT PRIMARY KEY AUTO_INCREMENT,
+  order_id        VARCHAR(64) UNIQUE,
   buyer_id        BIGINT UNSIGNED NOT NULL,   -- FK → users.id
   merchant_id     INT UNSIGNED NOT NULL,      -- FK → merchants.id
   address         TEXT,

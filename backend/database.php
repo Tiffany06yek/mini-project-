@@ -90,9 +90,22 @@ if (!function_exists('xiapee_build_database_snapshot')) {
         ];
 
         // Fetch a light order history for the currently signed-in user.
-        $ordersStmt = $conn->prepare(
-            'SELECT id, total, created_at, address FROM orders WHERE buyer_id = ? ORDER BY created_at DESC LIMIT 20'
-        );
+        $ordersHasCustomId = false;
+        try {
+            $ordersColResult = $conn->query("SHOW COLUMNS FROM orders LIKE 'order_id'");
+            if ($ordersColResult instanceof mysqli_result) {
+                $ordersHasCustomId = $ordersColResult->num_rows > 0;
+                $ordersColResult->free();
+            }
+        } catch (mysqli_sql_exception $ignored) {
+            $ordersHasCustomId = false;
+        }
+
+        $orderSelect = 'SELECT id, total, created_at, address'
+            . ($ordersHasCustomId ? ', order_id' : '')
+            . ' FROM orders WHERE buyer_id = ? ORDER BY created_at DESC LIMIT 20';
+
+        $ordersStmt = $conn->prepare($orderSelect);
         
         if ($ordersStmt) {
             $ordersStmt->bind_param('i', $user['id']);
@@ -107,8 +120,11 @@ if (!function_exists('xiapee_build_database_snapshot')) {
                         $dt = null;
                     }
 
+                    $externalId = $ordersHasCustomId ? ($orderRow['order_id'] ?? null) : null;
                     $user['orderHistory'][] = [
-                        'id' => (int)$orderRow['id'],
+                        'id' => $externalId && $externalId !== '' ? $externalId : (int)$orderRow['id'],
+                        'orderNumber' => (int)$orderRow['id'],
+                        'externalId' => $externalId,
                         'total' => isset($orderRow['total']) ? (float)$orderRow['total'] : 0.0,
                         'timestamp' => $dt ? $dt->format(DateTime::ATOM) : null,
                         'dropOff' => $orderRow['address'] ?? '',

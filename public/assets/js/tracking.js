@@ -302,9 +302,12 @@ async function loadOrderFromServer(id, options = {}) {
             throw new Error(payload?.message || 'Failed to fetch order from server.');
         }
         const srv = payload.order || {};
+        const remoteId = srv.externalId || srv.id || id;
         const rawStatus = srv.status || srv.orderStatus || '';
         const mapped = {
-            id: srv.id || id,
+            id: remoteId,
+            orderNumber: srv.orderNumber ?? (typeof srv.id === 'number' ? srv.id : null),
+            externalId: srv.externalId ?? (typeof remoteId === 'string' ? remoteId : null),
             status: normaliseStatus(rawStatus),
             statusText: rawStatus,
             statusSteps: Array.isArray(srv.statusSteps) ? srv.statusSteps : [],

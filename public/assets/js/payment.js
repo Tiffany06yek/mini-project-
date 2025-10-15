@@ -348,7 +348,13 @@ async function placeOrder() {
         const orderHistory = Array.isArray(currentUser.orderHistory)
             ? [...currentUser.orderHistory]
             : [];
-        orderHistory.push({ ...order, id: result.orderId ?? order.id });
+            const historyRecord = {
+                ...order,
+                id: result.orderId ?? order.id,
+                orderNumber: result.orderNumber ?? (typeof result.orderId === 'number' ? result.orderId : null),
+                externalId: result.externalId ?? (typeof (result.orderId ?? order.id) === 'string' ? (result.orderId ?? order.id) : null)
+            };
+            orderHistory.push(historyRecord);
 
         currentUser = {
             ...currentUser,
@@ -361,6 +367,8 @@ async function placeOrder() {
 
         const trackingOrder = {
             id: result.orderId ?? order.id,
+            orderNumber: result.orderNumber ?? historyRecord.orderNumber ?? null,
+            externalId: result.externalId ?? historyRecord.externalId ?? null,
             userId: currentUser.id || order.userId || 0,
             status: 'Order Confirmed',
             dropOff: order.dropOff,
