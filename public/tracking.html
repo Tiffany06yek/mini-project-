@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XIApee - Order Tracking</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/frontend/style.css">
+    <script type="module" src="/frontend/script.js" defer></script>
+    <script>window.addEventListener('DOMContentLoaded',()=>{
+        import('/public/assets/js/header.js').then(m=>m.Header&&m.Header());});</script>
+</head>
+<body>
+    <header class="container"></header>
+    <div class="main-container">
+        <div class="tracking-header">
+            <h1 class="hero-title">Order Tracking</h1>
+            <div class="order-info-header">
+                <div class="order-id" id="order-id">Order #</div>
+                <div class="estimated-time" id="estimated-time">Estimated: 30 min</div>
+            </div>
+        </div>
+        
+        <div class="tracking-content">
+            <div class="progress-section">
+                <div class="progress-steps">
+                    <div class="step" id="step-confirmed">
+                        <div class="step-circle">
+                            <div class="step-icon">✓</div>
+                        </div>
+                        <div class="step-label">Order Confirmed</div>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step" id="step-prepared">
+                        <div class="step-circle">
+                            <div class="step-icon">👨‍🍳</div>
+                        </div>
+                        <div class="step-label">Being Prepared</div>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step" id="step-delivery">
+                        <div class="step-circle">
+                            <div class="step-icon">🚚</div>
+                        </div>
+                        <div class="step-label">Out for Delivery</div>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step" id="step-delivered">
+                        <div class="step-circle">
+                            <div class="step-icon">🏠</div>
+                        </div>
+                        <div class="step-label">Delivered</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="order-details-section">
+                <div class="staff-info">
+                    <h3>Delivery Contact</h3>
+                    <div class="staff-card">
+                        <div class="staff-avatar">👨‍💼</div>
+                        <div class="staff-details">
+                            <div class="staff-name" id="staff-name">-</div>
+                            <div class="staff-phone" id="staff-phone">-</div>
+                        </div>
+                        <div class="staff-actions">
+                            <button class="action-btn call-btn" id="call-btn">📞 Call</button>
+                            <button class="action-btn msg-btn" id="msg-btn">💬 Message</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dropoff-info">
+                    <h3>Drop-off Location</h3>
+                    <div class="location-card">
+                        <div class="location-icon">📍</div>
+                        <div class="location-text" id="drop-off">-</div>
+                    </div>
+                </div>
+                
+                <div class="bill-info">
+                    <h3>Order Summary</h3>
+                    <div class="bill-card">
+                        <div class="items-list" id="items"></div>
+                        <div class="bill-totals">
+                            <div class="bill-line">
+                                <span>Subtotal</span>
+                                <span id="bill-subtotal">RM 0.00</span>
+                            </div>
+                            <div class="bill-line">
+                                <span>Delivery Fee</span>
+                                <span id="bill-delivery">RM 0.00</span>
+                            </div>
+                            <div class="bill-line total">
+                                <span>Total</span>
+                                <span id="bill-total">RM 0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="success-message" id="success" style="display:none;">
+            <div class="success-icon">🎉</div>
+            <h2>Order Delivered Successfully!</h2>
+            <p>Thank you for choosing XIApee!</p>
+        </div>
+    </div>
+</body>
+</html>

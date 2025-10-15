@@ -254,16 +254,13 @@ async function placeOrder() {
     }
     // Deduct and update
     try {
-        const response = await fetch('/public/payment.html', {
+        const response = await fetch('/public/place_order.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify(order)
         });
         const result = await response.json().catch(() => ({}));
-
-        if (!response.ok || !result.success) {
-            throw new Error(result?.message || `Failed to place order (HTTP ${response.status}).`);
-        }
 
         const newBalance = balance - Number(order.total || 0);
         if (!Number.isNaN(newBalance) && walletBalance) {
