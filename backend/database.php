@@ -25,11 +25,30 @@ if (!function_exists('xiapee_build_database_snapshot')) {
         $data = [
             'users' => [],
             'orders' => [],
+            'couriers' => [],
         ];
 
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
         }
+
+        try {
+            $couriersResult = $conn->query('SELECT courier_id, merchant_id, name, phone FROM couriers ORDER BY merchant_id ASC, courier_id ASC');
+            if ($couriersResult instanceof mysqli_result) {
+                while ($courier = $couriersResult->fetch_assoc()) {
+                    $data['couriers'][] = [
+                        'courier_id' => $courier['courier_id'] ?? null,
+                        'merchant_id' => $courier['merchant_id'] ?? null,
+                        'name' => $courier['name'] ?? '',
+                        'phone' => $courier['phone'] ?? '',
+                    ];
+                }
+                $couriersResult->free();
+            }
+        } catch (mysqli_sql_exception $ignored) {
+            // Older schemas may not have a couriers table.
+        }
+
 
         $userId = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
         if ($userId <= 0) {

@@ -296,7 +296,7 @@ function scheduleProgress() {
 async function loadOrderFromServer(id, options = {}) {
     const { silent = false } = options;
     try {
-        const response = await fetch(`/backend/get_order.php?id=${encodeURIComponent(id)}`, { credentials: 'include' });
+        const response = await fetch(`/public/get_order.php?id=${encodeURIComponent(id)}`, { credentials: 'include' });
         const payload = await response.json();
         if (!response.ok || !payload?.success) {
             throw new Error(payload?.message || 'Failed to fetch order from server.');
