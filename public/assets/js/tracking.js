@@ -2,6 +2,7 @@ let db = null;
 let currentUser = null;
 let order = null;
 let progressTimer = null;
+let remoteRefreshTimer = null;
 
 const orderIdEl = document.getElementById('order-id');
 const estimatedTimeEl = document.getElementById('estimated-time');
@@ -22,19 +23,16 @@ const stepPrepared = document.getElementById('step-prepared');
 const stepDelivery = document.getElementById('step-delivery');
 const stepDelivered = document.getElementById('step-delivered');
 
-const STATUS_FLOW = [
-    'Order Confirmed',
-    'Being Prepared',
-    'Out for Delivery',
-    'Delivered'
+const STATUS_STAGES = [
+    { label: 'Order Confirmed', keywords: ['confirm', 'placed', 'accept'] },
+    { label: 'Being Prepared', keywords: ['prepar', 'cook', 'kitchen'] },
+    { label: 'Out for Delivery', keywords: ['delivery', 'dispatch', 'way', 'pickup', 'picked'] },
+    { label: 'Delivered', keywords: ['delivered', 'complete', 'arriv', 'done'] },
 ];
 
-const ESTIMATE_BY_STATUS = {
-    'Order Confirmed': 30,
-    'Being Prepared': 20,
-    'Out for Delivery': 10,
-    'Delivered': 0
-};
+const ESTIMATE_BY_STAGE = [30, 20, 10, 0];
+
+const REMOTE_REFRESH_INTERVAL = 20000;
 
 function getParamId() {
     const params = new URLSearchParams(window.location.search);
@@ -81,19 +79,24 @@ function findOrder(id) {
     return fromHistory ? { ...fromHistory } : null;
 }
 
+function getStageIndexFromValue(value) {
+    const text = (value || '').toString().toLowerCase();
+    if (!text) {
+        return -1;
+    }
+    
+    for (let index = STATUS_STAGES.length - 1; index >= 0; index -= 1) {
+        const { keywords } = STATUS_STAGES[index];
+        if (keywords.some(keyword => text.includes(keyword))) {
+            return index;
+        }
+    }
+    return -1;
+}
+
 function normaliseStatus(status) {
-    const raw = (status || '').toString().toLowerCase();
-    if (!raw) return STATUS_FLOW[0];
-    if (raw.includes('deliver') || raw.includes('arriv') || raw.includes('complete')) {
-        return 'Delivered';
-    }
-    if (raw.includes('way') || raw.includes('picked') || raw.includes('out')) {
-        return 'Out for Delivery';
-    }
-    if (raw.includes('prep') || raw.includes('cook')) {
-        return 'Being Prepared';
-    }
-    return 'Order Confirmed';
+    const index = getStageIndexFromValue(status);
+    return index >= 0 ? STATUS_STAGES[index].label : STATUS_STAGES[0].label;
 }
 
 function setStatusMessage(message, tone = 'info') {
@@ -126,9 +129,39 @@ function renderItems(items) {
     }).join('');
 }
 
-function updateProgressSteps(status) {
+function getStageIndexFromSteps(steps) {
+    if (!Array.isArray(steps)) {
+        return -1;
+    }
+
+    return steps.reduce((acc, step) => {
+        if (!step) {
+            return acc;
+        }
+        const done = step.done === true || step.completed === true || step.isCompleted === true;
+        const active = step.active === true;
+        if (!done && !active) {
+            return acc;
+        }
+        const candidate = getStageIndexFromValue(step.title || step.label || step.key || step.status);
+        return candidate > acc ? candidate : acc;
+    }, -1);
+}
+
+function getStageIndexFromOrder(targetOrder) {
+    if (!targetOrder) {
+        return 0;
+    }
+    const fromSteps = getStageIndexFromSteps(targetOrder.statusSteps);
+    const fromStatusText = getStageIndexFromValue(targetOrder.statusText);
+    const fromStatus = getStageIndexFromValue(targetOrder.status);
+    const candidate = Math.max(fromSteps, fromStatusText, fromStatus);
+    return candidate >= 0 ? candidate : 0;
+}
+
+function updateProgressSteps(targetOrder) {
     const steps = [stepConfirmed, stepPrepared, stepDelivery, stepDelivered];
-    const activeIndex = Math.max(0, STATUS_FLOW.indexOf(status));
+    const activeIndex = Math.max(0, getStageIndexFromOrder(targetOrder));
     steps.forEach((step, index) => {
         if (!step) return;
         step.classList.remove('active', 'completed');
@@ -137,24 +170,34 @@ function updateProgressSteps(status) {
         } else if (index === activeIndex) {
             step.classList.add('active');
         }
+        const labelEl = step.querySelector('.step-label');
+        if (labelEl) {
+            labelEl.textContent = STATUS_STAGES[index]?.label || labelEl.textContent;
+        }
     });
     if (successEl) {
-        successEl.hidden = status !== 'Delivered';
+        successEl.hidden = activeIndex !== STATUS_STAGES.length - 1;
     }
 }
 
 function render() {
     if (!order) return;
-    const status = normaliseStatus(order.status);
+    const stageIndex = getStageIndexFromOrder(order);
+    const status = STATUS_STAGES[stageIndex]?.label || STATUS_STAGES[0].label;
+    const statusText = (order.statusText || '').trim();
     order.status = status;
     if (orderIdEl) {
         orderIdEl.textContent = order.id ? `Order #${order.id}` : 'Order #';
     }
     if (estimatedTimeEl) {
-        const remaining = ESTIMATE_BY_STATUS[status] ?? ESTIMATE_BY_STATUS['Order Confirmed'];
+        const remaining = ESTIMATE_BY_STAGE[stageIndex] ?? ESTIMATE_BY_STAGE[0];
         estimatedTimeEl.textContent = `Estimated: ${remaining} min`;
     }
-    setStatusMessage(`Status: ${status}`);
+
+    const statusMessage = statusText && statusText.toLowerCase() !== status.toLowerCase()
+        ? `${statusText} (${status})`
+        : status;
+    setStatusMessage(`Status: ${statusMessage}`);
     if (dropOffEl) {
         dropOffEl.textContent = order.dropOff || '-';
     }
@@ -187,7 +230,7 @@ function render() {
     if (billSub) billSub.textContent = `RM ${Number(order.subtotal || 0).toFixed(2)}`;
     if (billDel) billDel.textContent = `RM ${Number(order.deliveryFee || 0).toFixed(2)}`;
     if (billTot) billTot.textContent = `RM ${Number(order.total || 0).toFixed(2)}`;
-    updateProgressSteps(status);
+    updateProgressSteps(order);
 }
 
 function persistOrderOverride(updated) {
@@ -216,15 +259,17 @@ function persistOrderOverride(updated) {
 
 function progressStatus() {
     if (!order) return false;
-    const idx = STATUS_FLOW.indexOf(order.status);
-    if (idx === -1 || idx >= STATUS_FLOW.length - 1) {
+    const flow = STATUS_STAGES.map(stage => stage.label);
+    const idx = flow.indexOf(order.status);
+    if (idx === -1 || idx >= flow.length - 1) {
         if (order.status === 'Delivered') {
             setStatusMessage('Status: Delivered 🎉', 'success');
         }
         return false;
     }
-    const nextStatus = STATUS_FLOW[idx + 1];
-    order = { ...order, status: nextStatus, timestamp: new Date().toISOString() };
+    
+    const nextStatus = flow[idx + 1];
+    order = { ...order, status: nextStatus, statusText: nextStatus, timestamp: new Date().toISOString() };
     persistOrderOverride(order);
     render();
     if (nextStatus === 'Delivered') {
@@ -248,7 +293,8 @@ function scheduleProgress() {
     }, 10000);
 }
 
-async function loadOrderFromServer(id) {
+async function loadOrderFromServer(id, options = {}) {
+    const { silent = false } = options;
     try {
         const response = await fetch(`/backend/get_order.php?id=${encodeURIComponent(id)}`, { credentials: 'include' });
         const payload = await response.json();
@@ -256,9 +302,12 @@ async function loadOrderFromServer(id) {
             throw new Error(payload?.message || 'Failed to fetch order from server.');
         }
         const srv = payload.order || {};
+        const rawStatus = srv.status || srv.orderStatus || '';
         const mapped = {
             id: srv.id || id,
-            status: normaliseStatus(srv.status || srv.orderStatus),
+            status: normaliseStatus(rawStatus),
+            statusText: rawStatus,
+            statusSteps: Array.isArray(srv.statusSteps) ? srv.statusSteps : [],
             dropOff: srv.dropOff || '',
             subtotal: Number(srv.subtotal || 0),
             deliveryFee: Number(srv.deliveryFee || 0),
@@ -281,9 +330,50 @@ async function loadOrderFromServer(id) {
         return mapped;
     } catch (err) {
         console.warn('loadOrderFromServer failed', err);
-        setStatusMessage(err.message || 'Unable to load order.', 'error');
+        if (!silent) {
+            setStatusMessage(err.message || 'Unable to load order.', 'error');
+        }
         return null;
     }
+}
+
+function stopProgressTimer() {
+    if (progressTimer) {
+        clearTimeout(progressTimer);
+        progressTimer = null;
+    }
+}
+
+function stopRemoteRefresh() {
+    if (remoteRefreshTimer) {
+        clearInterval(remoteRefreshTimer);
+        remoteRefreshTimer = null;
+    }
+}
+
+function startRemoteRefresh(id) {
+    stopRemoteRefresh();
+    remoteRefreshTimer = setInterval(async () => {
+        const latest = await loadOrderFromServer(id, { silent: true });
+        if (!latest) {
+            return;
+        }
+        const mergedItems = Array.isArray(latest.items) && latest.items.length > 0
+            ? latest.items
+            : (Array.isArray(order?.items) ? order.items : []);
+        order = {
+            ...(order || {}),
+            ...latest,
+            items: mergedItems,
+            statusSteps: Array.isArray(latest.statusSteps) && latest.statusSteps.length > 0
+                ? latest.statusSteps
+                : (Array.isArray(order?.statusSteps) ? order.statusSteps : []),
+        };
+        render();
+        if (order.status === 'Delivered') {
+            stopRemoteRefresh();
+        }
+    }, REMOTE_REFRESH_INTERVAL);
 }
 
 async function init() {
@@ -293,17 +383,40 @@ async function init() {
         setStatusMessage('Order id is missing from the link.', 'error');
         return;
     }
-    order = findOrder(id);
-    if (!order) {
-        order = await loadOrderFromServer(id);
+    const localOrder = findOrder(id);
+    const remoteOrder = await loadOrderFromServer(id, { silent: Boolean(localOrder) });
+
+    if (remoteOrder) {
+        const mergedItems = Array.isArray(remoteOrder.items) && remoteOrder.items.length > 0
+            ? remoteOrder.items
+            : (Array.isArray(localOrder?.items) ? localOrder.items : []);
+        order = {
+            ...(localOrder || {}),
+            ...remoteOrder,
+            items: mergedItems,
+            statusSteps: Array.isArray(remoteOrder.statusSteps) && remoteOrder.statusSteps.length > 0
+                ? remoteOrder.statusSteps
+                : (Array.isArray(localOrder?.statusSteps) ? localOrder.statusSteps : []),
+        };
+    } else if (localOrder) {
+        order = localOrder;
     }
+
     if (!order) {
         setStatusMessage('Order not found.', 'error');
         return;
     }
+    if (!Array.isArray(order.items)) {
+        order.items = [];
+    }
     setStatusMessage(`Status: ${normaliseStatus(order.status)}`);
     render();
-    scheduleProgress();
+    if (remoteOrder) {
+        stopProgressTimer();
+        startRemoteRefresh(id);
+    } else {
+        scheduleProgress();
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

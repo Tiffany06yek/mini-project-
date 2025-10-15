@@ -3,6 +3,10 @@ import { globalCart } from '/public/assets/js/cart.js';
 
 Header();
 
+const DEFAULT_COURIERS = [
+    { name: 'Assigned Courier', phone: '', merchantId: null }
+];
+
 let db = {};
 let currentUser = null;
 
@@ -142,7 +146,7 @@ function autofillUser() {
         }
     }
     currentUser.balance = 500;
-    if (walletBalance) walletBalance.textContent = `RM ${(currentUser.balance ?? 0).toFixed(2)}`;
+    if (walletBalance) walletBalance.textContent = formatCurrency(currentUser.balance);
 
 }
 
@@ -308,7 +312,6 @@ function persistOrderForTracking(orderRecord) {
 
 async function placeOrder() {
     if (errorMsg) errorMsg.style.display = 'none';
-    const effDB = getEffectiveDB();
     const order = makeOrderPayload();
     if (!order.items || order.items.length === 0) {
         showError('Your cart is empty.');
