@@ -74,6 +74,7 @@ if (!function_exists('xiapee_build_database_snapshot')) {
         $ordersStmt = $conn->prepare(
             'SELECT id, total, created_at, address FROM orders WHERE buyer_id = ? ORDER BY created_at DESC LIMIT 20'
         );
+        
         if ($ordersStmt) {
             $ordersStmt->bind_param('i', $user['id']);
             $ordersStmt->execute();

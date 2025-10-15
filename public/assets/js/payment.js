@@ -124,7 +124,6 @@ async function loadDB() {
     }
 }
 
-
 function autofillUser() {
     if (!currentUser) return;
     if (nameInput) nameInput.value = currentUser.name || '';
@@ -223,11 +222,6 @@ function makeOrderPayload() {
     };
 }
 
-function simulateWriteBack(newDB) {
-    // Persist simulated DB to localStorage for prototype
-    localStorage.setItem('xiapee_db_override', JSON.stringify(newDB));
-}
-
 function getEffectiveDB() {
     try {
         const o = localStorage.getItem('xiapee_db_override');
@@ -260,7 +254,7 @@ async function placeOrder() {
     }
     // Deduct and update
     try {
-        const response = await fetch('/public/payment.php', {
+        const response = await fetch('/public/payment.html', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(order)
@@ -291,7 +285,7 @@ async function placeOrder() {
 
         globalCart.clear();
         const redirectId = result.orderId ?? order.id;
-        window.location.href = `/public.tracking.html?id=${encodeURIComponent(redirectId)}`;
+        window.location.href = `/public/tracking.html?id=${encodeURIComponent(redirectId)}`;
     } catch (err) {
         console.error('placeOrder failed', err);
         showError(err.message || 'Failed to place order. Please try again.');
