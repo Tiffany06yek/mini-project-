@@ -43,6 +43,34 @@ if ($subtotal <= 0 || $total <= 0) {
 // 连接数据库
 require_once __DIR__ . '/../backend/database.php';
 
+function xiapee_prepare_optional(mysqli $conn, string $sql): ?mysqli_stmt {
+    try {
+        return $conn->prepare($sql);
+    } catch (mysqli_sql_exception $ignored) {
+        return null;
+    }
+}
+
+function xiapee_normalise_addons(array $item): array {
+    $addons = [];
+    if (!isset($item['addons']) || !is_array($item['addons'])) {
+        return $addons;
+    }
+    foreach ($item['addons'] as $addon) {
+        if (!is_array($addon)) {
+            continue;
+        }
+        $id = xiapee_parse_int($addon['id'] ?? $addon['addon_ID'] ?? $addon['addonId'] ?? null);
+        $price = isset($addon['price']) ? (float)$addon['price'] : 0.0;
+        $addons[] = [
+            'id'    => $id ?? 0,
+            'price' => $price,
+            'name'  => isset($addon['name']) ? trim((string)$addon['name']) : '',
+        ];
+    }
+    return $addons;
+}
+
 // ———————— 小工具函数 ————————
 function xiapee_parse_int($value): ?int {
     if (is_int($value)) return $value;
@@ -175,16 +203,109 @@ try {
     // 插 items
     $itemStmt = $conn->prepare('INSERT INTO order_items (order_id, product_id, qty, unit_price) VALUES (?, ?, ?, ?)');
     if (!$itemStmt) throw new RuntimeException('Save failed. Please try again later.');
+    $addonStmt = xiapee_prepare_optional($conn, 'INSERT INTO order_item_addons (order_item_id, addon_id, price) VALUES (?, ?, ?)');
+
+    $sessionItems = [];
     foreach ($items as $it) {
         if (!is_array($it)) continue;
         $pid = xiapee_resolve_product_id($conn, $it);
         if ($pid === null || $pid <= 0) throw new RuntimeException('Invalid product.');
         $qty   = max(1, (int)($it['qty'] ?? $it['quantity'] ?? 1));
         $price = (float)($it['price'] ?? $it['unitPrice'] ?? 0.0);
-        $itemStmt->bind_param('iiid', $orderId, $pid, $qty, $price);
+        $addons = xiapee_normalise_addons($it);
+        $addonTotal = array_reduce($addons, fn($sum, $addon) => $sum + (float)$addon['price'], 0.0);
+        $baseUnitPrice = $price - $addonTotal;
+        if ($baseUnitPrice < 0) {
+            $baseUnitPrice = $price;
+        }
+
+        $itemStmt->bind_param('iiid', $orderId, $pid, $qty, $baseUnitPrice);
         $itemStmt->execute();
+        $orderItemId = (int)$conn->insert_id;
+
+        $sessionAddons = [];
+        if ($addonStmt && $orderItemId > 0 && $addons) {
+            foreach ($addons as $addon) {
+                $addonId = $addon['id'] ?? 0;
+                if (!$addonId || $addonId <= 0) {
+                    continue;
+                }
+                $addonPrice = (float)$addon['price'];
+                $addonStmt->bind_param('iid', $orderItemId, $addonId, $addonPrice);
+                $addonStmt->execute();
+                $sessionAddons[] = [
+                    'id'    => $addonId,
+                    'name'  => $addon['name'] ?? '',
+                    'price' => $addonPrice,
+                ];
+            }
+        } elseif ($addons) {
+            foreach ($addons as $addon) {
+                $sessionAddons[] = [
+                    'id'    => $addon['id'] ?? 0,
+                    'name'  => $addon['name'] ?? '',
+                    'price' => (float)$addon['price'],
+                ];
+            }
+        }
+
+        $sessionItems[] = [
+            'id'        => $orderItemId ?: ($it['id'] ?? $pid),
+            'productId' => $pid,
+            'name'      => $it['name'] ?? 'Item',
+            'qty'       => $qty,
+            'price'     => $price,
+            'unitPrice' => $baseUnitPrice,
+            'total'     => ($baseUnitPrice + $addonTotal) * $qty,
+            'addons'    => $sessionAddons,
+        ];
     }
     $itemStmt->close();
+
+    if ($addonStmt) $addonStmt->close();
+
+    $paymentId = null;
+    try {
+        $paymentIdResult = $conn->query('SELECT COALESCE(MAX(payment_id), 0) AS max_id FROM payments');
+        if ($paymentIdResult instanceof mysqli_result) {
+            $row = $paymentIdResult->fetch_assoc();
+            $paymentId = (int)($row['max_id'] ?? 0) + 1;
+            $paymentIdResult->free();
+        } else {
+            $paymentId = 1;
+        }
+        $paymentStmt = $conn->prepare('INSERT INTO payments (payment_id, order_id, payment_method, status) VALUES (?, ?, ?, ?)');
+        if ($paymentStmt) {
+            $paymentStmt->bind_param('iiss', $paymentId, $orderId, $paymentMethod, $paymentStatus);
+            $paymentStmt->execute();
+            $paymentStmt->close();
+        }
+    } catch (mysqli_sql_exception $ignored) {
+        $paymentId = null;
+    }
+
+    $statusHistoryId = null;
+    foreach (['order_status_history', 'Order_Status_History'] as $statusTable) {
+        try {
+            $statusResult = $conn->query(sprintf('SELECT COALESCE(MAX(id), 0) AS max_id FROM `%s`', $statusTable));
+            if ($statusResult instanceof mysqli_result) {
+                $row = $statusResult->fetch_assoc();
+                $statusHistoryId = (int)($row['max_id'] ?? 0) + 1;
+                $statusResult->free();
+            } else {
+                $statusHistoryId = 1;
+            }
+            $statusStmt = $conn->prepare(sprintf('INSERT INTO `%s` (id, order_id, status) VALUES (?, ?, ?)', $statusTable));
+            if ($statusStmt) {
+                $statusStmt->bind_param('iis', $statusHistoryId, $orderId, $data['orderStatus'] ?? 'placed');
+                $statusStmt->execute();
+                $statusStmt->close();
+                break;
+            }
+        } catch (mysqli_sql_exception $ignored) {
+            $statusHistoryId = null;
+        }
+    }
 
     // 骑手
     $courier = xiapee_fetch_courier($conn, $merchantId) ?: [
@@ -234,6 +355,8 @@ try {
         'orderNumber'  => $orderId,
         'externalId'   => $customOrderId,
         'courier'      => $courier,
+        'paymentId'    => $paymentId,
+        'statusHistoryId' => $statusHistoryId,
         'message'      => 'Order Successful.',
     ]);
 } catch (Throwable $e) {

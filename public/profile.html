@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XIApee - Profile</title>
+    <link rel="icon" type="image/svg+xml" href="/public/img/logo.png" />
+    <link rel="stylesheet" href="/public/assets/css/profile.css">
+</head>
+
+<body>
+    <header class="container"></header>
+
+    <div class="background-elements">
+        <div class="bg-shape"></div>
+        <div class="bg-shape"></div>
+        <div class="bg-shape"></div>
+    </div>
+
+    <div class="profile-container">
+        <a href="javascript:history.back()" class="back-btn">← Back</a>
+        <!-- Profile Header Section -->
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <img src="/public/assets/img/image.png" alt="Profile Avatar" class="avatar-img">
+                <button class="edit-avatar-btn" onclick="editAvatar()">📷</button>
+            </div>
+            <div class="profile-info">
+                <h1 class="profile-name" id="profileName">John Doe</h1>
+                <p class="profile-email" id="profileEmail">john.doe@example.com</p>
+                <p class="profile-phone" id="profilePhone">+60 12-345 6789</p>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalOrders">24</span>
+                        <span class="stat-label">Total Orders</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="memberSince">2023</span>
+                        <span class="stat-label">Member Since</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="loyaltyPoints">1,250</span>
+                        <span class="stat-label">Loyalty Points</span>
+                    </div>
+                    <div class="stat-item wallet-balance">
+                        <span class="stat-number" id="walletBalance">RM 125.50</span>
+                        <span class="stat-label">Wallet Balance</span>
+                        <button class="top-up-btn" onclick="showTopUpModal()">Top Up</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Navigation Tabs -->
+        <div class="profile-nav">
+            <button class="nav-tab active" onclick="showTab('personal')" data-tab="personal">
+                <span class="tab-icon">👤</span>
+                Personal Info
+            </button>
+            <button class="nav-tab" onclick="showTab('orders')" data-tab="orders">
+                <span class="tab-icon">📦</span>
+                Order History
+            </button>
+            <button class="nav-tab" onclick="showTab('payments')" data-tab="payments">
+                <span class="tab-icon">💳</span>
+                Payment History
+            </button>
+            <button class="nav-tab" onclick="showTab('addresses')" data-tab="addresses">
+                <span class="tab-icon">📍</span>
+                Addresses
+            </button>
+            <button class="nav-tab" onclick="showTab('wallet')" data-tab="wallet">
+                <span class="tab-icon">💰</span>
+                Wallet
+            </button>
+            <button class="nav-tab" onclick="showTab('settings')" data-tab="settings">
+                <span class="tab-icon">⚙️</span>
+                Settings
+            </button>
+        </div>
+
+        <!-- Tab Content Sections -->
+        <div class="tab-content">
+            <!-- Personal Information Tab -->
+            <div class="tab-panel active" id="personal-panel">
+                <div class="panel-header">
+                    <h2>Personal Information</h2>
+                    <button class="edit-btn" onclick="editPersonalInfo()">Edit</button>
+                </div>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <div class="info-item">
+                            <label>Full Name</label>
+                            <input type="text" id="fullName" value="John Doe" readonly>
+                        </div>
+                        <div class="info-item">
+                            <label>Email Address</label>
+                            <input type="email" id="email" value="john.doe@example.com" readonly>
+                        </div>
+                        <div class="info-item">
+                            <label>Phone Number</label>
+                            <input type="tel" id="phone" value="+60 12-345 6789" readonly>
+                        </div>
+                        <div class="info-item">
+                            <label>Date of Birth</label>
+                            <input type="date" id="dob" value="1990-05-15" readonly>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-item">
+                            <label>Gender</label>
+                            <select id="gender" disabled>
+                                <option value="male" selected>Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="info-item">
+                            <label>Preferred Language</label>
+                            <select id="language" disabled>
+                                <option value="en" selected>English</option>
+                                <option value="ms">Bahasa Malaysia</option>
+                                <option value="zh">中文</option>
+                            </select>
+                        </div>
+                        <div class="info-item">
+                            <label>Dietary Preferences</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" checked disabled> Vegetarian</label>
+                                <label><input type="checkbox" disabled> Vegan</label>
+                                <label><input type="checkbox" checked disabled> Halal</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order History Tab -->
+            <div class="tab-panel" id="orders-panel">
+                <div class="panel-header">
+                    <h2>Order History</h2>
+                    <div class="filter-options">
+                        <select id="orderFilter">
+                            <option value="all">All Orders</option>
+                            <option value="pending">Pending</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="orders-list" id="ordersList">
+                    <!-- Order items will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Payment History Tab -->
+            <div class="tab-panel" id="payments-panel">
+                <div class="panel-header">
+                    <h2>Payment History</h2>
+                    <div class="filter-options">
+                        <select id="paymentFilter">
+                            <option value="all">All Payments</option>
+                            <option value="recent">Recent</option>
+                            <option value="this-month">This Month</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="payments-list" id="paymentsList">
+                    <!-- Payment items will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Addresses Tab -->
+            <div class="tab-panel" id="addresses-panel">
+                <div class="panel-header">
+                    <h2>Saved Addresses</h2>
+                    <button class="add-btn" onclick="addNewAddress()">+ Add Address</button>
+                </div>
+                <div class="addresses-grid" id="addressesGrid">
+                    <!-- Address cards will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Wallet Tab -->
+            <div class="tab-panel" id="wallet-panel">
+                <div class="panel-header">
+                    <h2>Wallet Management</h2>
+                    <div class="wallet-actions">
+                        <button class="action-btn secondary" onclick="showTopUpModal()">Top Up</button>
+                        <button class="action-btn secondary" onclick="showWithdrawModal()">Withdraw</button>
+                        <button class="action-btn secondary" onclick="editBalance()">Edit Balance</button>
+                    </div>
+                </div>
+                
+                <div class="wallet-overview">
+                    <div class="wallet-card">
+                        <div class="wallet-info">
+                            <h3>Current Balance</h3>
+                            <div class="balance-amount" id="walletBalanceDisplay">RM 125.50</div>
+                            <div class="balance-details">
+                                <span class="balance-label">Available</span>
+                                <span class="balance-label">Last updated: Today</span>
+                            </div>
+                        </div>
+                        <div class="wallet-icon">💰</div>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <h3>Quick Actions</h3>
+                        <div class="quick-action-buttons">
+                            <button class="quick-btn" onclick="quickTopUp(10)">+RM 10</button>
+                            <button class="quick-btn" onclick="quickTopUp(25)">+RM 25</button>
+                            <button class="quick-btn" onclick="quickTopUp(50)">+RM 50</button>
+                            <button class="quick-btn" onclick="quickTopUp(100)">+RM 100</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wallet-sections">
+                    <div class="wallet-section">
+                        <h3>Transaction History</h3>
+                        <div class="transaction-filters">
+                            <select id="transactionFilter">
+                                <option value="all">All Transactions</option>
+                                <option value="topup">Top Up</option>
+                                <option value="payment">Payment</option>
+                                <option value="refund">Refund</option>
+                                <option value="withdrawal">Withdrawal</option>
+                            </select>
+                        </div>
+                        <div class="transactions-list" id="transactionsList">
+                            <!-- Transactions will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div class="wallet-section">
+                        <h3>Payment Methods</h3>
+                        <div class="payment-methods" id="paymentMethods">
+                            <!-- Payment methods will be populated by JavaScript -->
+                        </div>
+                        <button class="add-payment-btn" onclick="addPaymentMethod()">+ Add Payment Method</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-panel" id="settings-panel">
+                <div class="panel-header">
+                    <h2>Account Settings</h2>
+                </div>
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3>Notifications</h3>
+                        <div class="setting-item">
+                            <label>Push Notifications</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label>Email Notifications</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label>SMS Notifications</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="settings-card">
+                        <h3>Privacy & Security</h3>
+                        <div class="setting-item">
+                            <label>Two-Factor Authentication</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label>Profile Visibility</label>
+                            <select>
+                                <option value="public">Public</option>
+                                <option value="friends">Friends Only</option>
+                                <option value="private" selected>Private</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="settings-card">
+                        <h3>Account Actions</h3>
+                        <div class="action-buttons">
+                            <button class="action-btn secondary" onclick="changePassword()">Change Password</button>
+                            <button class="action-btn secondary" onclick="downloadData()">Download My Data</button>
+                            <button class="action-btn danger" onclick="deleteAccount()">Delete Account</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wallet Modals -->
+    <div class="modal-overlay" id="topUpModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Top Up Wallet</h3>
+                <button class="close-btn" onclick="closeModal('topUpModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="topup-options">
+                    <h4>Select Amount</h4>
+                    <div class="amount-buttons">
+                        <button class="amount-btn" onclick="selectAmount(10)">RM 10</button>
+                        <button class="amount-btn" onclick="selectAmount(25)">RM 25</button>
+                        <button class="amount-btn" onclick="selectAmount(50)">RM 50</button>
+                        <button class="amount-btn" onclick="selectAmount(100)">RM 100</button>
+                        <button class="amount-btn" onclick="selectAmount(200)">RM 200</button>
+                        <button class="amount-btn" onclick="selectAmount(500)">RM 500</button>
+                    </div>
+                    <div class="custom-amount">
+                        <label>Custom Amount</label>
+                        <input type="number" id="customAmount" placeholder="Enter amount" min="1" max="10000">
+                    </div>
+                </div>
+                <div class="payment-method-selection">
+                    <h4>Payment Method</h4>
+                    <div class="payment-options">
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="card" checked>
+                            <span class="payment-icon">💳</span>
+                            <span>Credit/Debit Card</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="bank">
+                            <span class="payment-icon">🏦</span>
+                            <span>Bank Transfer</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="ewallet">
+                            <span class="payment-icon">📱</span>
+                            <span>E-Wallet</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('topUpModal')">Cancel</button>
+                <button class="modal-btn primary" onclick="processTopUp()">Top Up</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="withdrawModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Withdraw Funds</h3>
+                <button class="close-btn" onclick="closeModal('withdrawModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="withdraw-form">
+                    <div class="form-group">
+                        <label>Withdrawal Amount</label>
+                        <input type="number" id="withdrawAmount" placeholder="Enter amount" min="1">
+                        <small>Available balance: <span id="availableBalance">RM 125.50</span></small>
+                    </div>
+                    <div class="form-group">
+                        <label>Bank Account</label>
+                        <select id="bankAccount">
+                            <option value="">Select bank account</option>
+                            <option value="maybank">Maybank - ****1234</option>
+                            <option value="cimb">CIMB - ****5678</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('withdrawModal')">Cancel</button>
+                <button class="modal-btn primary" onclick="processWithdrawal()">Withdraw</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editBalanceModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Edit Balance</h3>
+                <button class="close-btn" onclick="closeModal('editBalanceModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="edit-balance-form">
+                    <div class="form-group">
+                        <label>Current Balance</label>
+                        <input type="text" id="currentBalanceDisplay" value="RM 125.50" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>New Balance</label>
+                        <input type="number" id="newBalance" placeholder="Enter new balance" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Reason</label>
+                        <select id="balanceReason">
+                            <option value="adjustment">Balance Adjustment</option>
+                            <option value="refund">Refund</option>
+                            <option value="bonus">Bonus Credit</option>
+                            <option value="correction">Error Correction</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea id="balanceNotes" placeholder="Optional notes"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('editBalanceModal')">Cancel</button>
+                <button class="modal-btn primary" onclick="processBalanceEdit()">Update Balance</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/main.js"></script>
+    <script src="/public/assets/js/profile.js"></script>
+</body>
+
+</html>

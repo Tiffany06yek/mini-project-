@@ -348,11 +348,20 @@ async function placeOrder() {
         const orderHistory = Array.isArray(currentUser.orderHistory)
             ? [...currentUser.orderHistory]
             : [];
+            const courierFromServer = result.courier || null;
+            const fallbackCourier = selectCourierForOrder(order.merchantId);
+            const resolvedCourier = courierFromServer || fallbackCourier || { name: 'Assigned Courier', phone: '' };
+            const staffInfo = {
+                name: resolvedCourier.name || 'Assigned Courier',
+                phone: resolvedCourier.phone || ''
+            };
             const historyRecord = {
                 ...order,
                 id: result.orderId ?? order.id,
                 orderNumber: result.orderNumber ?? (typeof result.orderId === 'number' ? result.orderId : null),
-                externalId: result.externalId ?? (typeof (result.orderId ?? order.id) === 'string' ? (result.orderId ?? order.id) : null)
+                externalId: result.externalId ?? (typeof (result.orderId ?? order.id) === 'string' ? (result.orderId ?? order.id) : null),
+                courier: resolvedCourier,
+                staff: staffInfo
             };
             orderHistory.push(historyRecord);
 
@@ -372,7 +381,8 @@ async function placeOrder() {
             userId: currentUser.id || order.userId || 0,
             status: 'Order Confirmed',
             dropOff: order.dropOff,
-            staff: selectCourierForOrder(order.merchantId),
+            staff: staffInfo,
+            courier: resolvedCourier,
             items: normaliseTrackingItems(order.items),
             subtotal: Number(order.subtotal || 0),
             deliveryFee: Number(order.deliveryFee || 0),
