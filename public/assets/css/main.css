@@ -368,3 +368,16 @@ header {
   background: #e8f5e8 !important;
   border-radius: 8px;
 }
+
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: #f0f0f0;
+    color: #333;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin-left: 20px;
+}

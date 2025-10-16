@@ -21,7 +21,7 @@ INSERT INTO `products` (`product_id`, `merchant_id`, `name`, `description`, `pri
 (100, 20, 'Onion Chicken Dumpling', 'Savory chicken filling blended with sweet onions for a flavorful bite.', 8.00, 'chickendum.png', 20),
 (101, 20, 'Chives Pork Dumpling', 'Classic pork dumplings with fresh Chinese chives for a fragrant taste.', 9.00, 'porkchieve.png', 20),
 (102, 20, 'Sour Spicy Noodle', 'Tangy and spicy noodle soup with chili, vinegar, and rich broth for a bold kick.', 10.00, 'suanlafen.png', 20),
-(103, 20, 'Braised Beef Noodle', 'Hearty noodles served with tender braised beef in aromatic soy-based broth.', 12.00, 'Spicybraised BeefNoodles.png', 20),
+(103, 20, 'Braised Beef Noodle', 'Hearty noodles served with tender braised beef in aromatic soy-based broth.', 12.00, 'braisedbeef.jpeg', 20),
 (104, 21, 'Waffle', 'Golden, crispy outside and fluffy inside, perfect with syrup or ice cream.', 4.50, 'chocowaffle.png', 20),
 (105, 21, 'Kopi O', 'Bold black coffee, strong and smooth, served the traditional way.', 3.00, 'kopio.png', 20),
 (106, 21, 'Teh Tarik', 'Malaysia’s famous pulled tea, creamy and frothy with rich flavor.', 4.00, 'tehtarik.png', 20),

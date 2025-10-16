@@ -1,5 +1,5 @@
 <?php
-require __DIR__ . '/../backend/database.php'; // 数据库连接 ($conn)
+require __DIR__ . '/../backend/database.php';
 
 header('Content-Type: application/json; charset=utf-8');
 

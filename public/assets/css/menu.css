@@ -1,4 +1,128 @@
 /* Restaurant Page Styles */
+/* Product Page Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.container {
+    width: 1200px;
+    margin: 30px auto;
+}
+
+body {
+    background: linear-gradient(135deg, #f8fdf8 0%, #e8f5e8 100%);
+    min-height: 100vh;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header_cont {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: 15px;
+}
+
+.left {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    /* background-color: #2d5a3d; */
+    border-radius: 15px;
+}
+
+.left p{
+    font-size: 30px;
+    font-weight: 800;
+    color: #2d5a3d;
+}
+
+.logo_img {
+    height: 40px;
+    width: 40px;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+
+}
+
+.middle {
+    display: flex;
+    justify-content: space-between;
+    border: 2px solid #2d5a3d;
+    border-radius: 15px;
+    height: 50px;
+    padding: 5px 15px;
+    width: 50%;
+}
+
+.right {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+}
+
+.search_inp {
+    width: 100px;
+    height: 40px;
+    border-radius: 20px;
+    border: 1px solid #E2EAF1;
+    background-color: #4a7c59;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    
+}
+
+.lens {
+    position: absolute;
+    top: 25%;
+    right: 10px;
+    cursor: pointer;
+    height: 20px;
+}
+
+
+.profile,
+.cart_icon,
+.home_icon,
+.tracking_icon,
+.money_icon {
+    height: 30px;
+    width: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    /* padding: 10px; */
+
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.icon{
+    width: 40px;
+    border-radius: 20px;
+    background-size: 27px;
+    overflow: hidden;
+    transition: transform 0.5s, box-shadow 0.5s;
+}
+
+.icon:hover {
+    background-color: #2d5a3da1;
+    /* box-shadow: 0 8px 25px rgba(0,0,0,0.5); */
+    
+}
+
 .restaurant-page-header {
     display: flex;
     align-items: center;
@@ -16,6 +140,7 @@
     border-radius: 8px;
     font-weight: 500;
     transition: all 0.3s ease;
+    margin-left: 20px;
 }
 
 .search_inp {

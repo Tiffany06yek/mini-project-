@@ -17,7 +17,7 @@ export function Header() {
     name.innerHTML = "XIApee"
     home_icon.href = "mainpage.php"
     cart_icon.href = "/public/cart.php"
-    tracking_icon.href = "/dashboard"
+    tracking_icon.href = "/public/tracking.html"
     money_icon.href = "/public/profile.html?panel=wallet"
     profile.href = "/public/profile.html"
     search_inp.placeholder = "Search product here"

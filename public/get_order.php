@@ -17,7 +17,7 @@ if ($orderIdRaw === '') {
     exit;
 }
 
-require __DIR__ . '/database.php';
+require __DIR__ . '/../backend/database.php';
 
 /** Return the first column in $candidates that exists in $table. */
 function xiapee_pick_column(mysqli $conn, string $table, array $candidates): ?string {

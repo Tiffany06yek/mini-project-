@@ -1,7 +1,5 @@
-import { Header } from '/public/assets/js/header.js';
-import { globalCart } from '/public/assets/js/cart.js';
 
-Header();
+import { globalCart } from '/public/assets/js/cart.js';
 
 const DEFAULT_COURIERS = [
     { name: 'Assigned Courier', phone: '', merchantId: null }
@@ -145,7 +143,6 @@ function autofillUser() {
             manualAddress.value = String(currentUser.address);
         }
     }
-    currentUser.balance = 500;
     if (walletBalance) walletBalance.textContent = formatCurrency(currentUser.balance);
 
 }

@@ -1,13 +1,10 @@
-// /public/assets/js/product.js
-import { Header } from '/public/assets/js/header.js';
 import { globalCart } from '/public/assets/js/cart.js';
+import { Header } from '/public/assets/js/header.js';
 
-// Initialize header
-Header();
+
 
 // API endpoint (确认路径正确)
 const API_PATH = '/public/get_product.php';
-
 
 // DOM elements (与你的 product.html 对应)
 const productTitle = document.getElementById('product-title');
@@ -368,6 +365,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         productNotFound.style.display = 'block';
         document.querySelector('.product-content').style.display = 'none';
         return;
+    }
+    if (!document.querySelector('.header_cont')) {
+        Header();
     }
 
     try {
