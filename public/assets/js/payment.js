@@ -336,7 +336,22 @@ async function placeOrder() {
             credentials: 'include',
             body: JSON.stringify(order)
         });
-        const result = await response.json().catch(() => ({}));
+        const responseText = await response.text();
+        let result = {};
+        try {
+            result = responseText ? JSON.parse(responseText) : {};
+        } catch (err) {
+            console.warn('Failed to parse place_order response', err, responseText);
+        }
+
+        if (!response.ok || result.success === false) {
+            const message = result.message || `Failed to place order (HTTP ${response.status})`;
+            throw new Error(message);
+        }
+
+        const resolvedOrderId = result.orderId ?? order.id;
+        const resolvedOrderNumber = result.orderNumber ?? (typeof result.orderId === 'number' ? result.orderId : null);
+        const resolvedExternalId = result.externalId ?? (typeof resolvedOrderId === 'string' ? resolvedOrderId : null);
 
         const newBalance = balance - Number(order.total || 0);
         if (!Number.isNaN(newBalance) && walletBalance) {
@@ -354,9 +369,9 @@ async function placeOrder() {
             };
             const historyRecord = {
                 ...order,
-                id: result.orderId ?? order.id,
-                orderNumber: result.orderNumber ?? (typeof result.orderId === 'number' ? result.orderId : null),
-                externalId: result.externalId ?? (typeof (result.orderId ?? order.id) === 'string' ? (result.orderId ?? order.id) : null),
+                id: resolvedOrderId,
+                orderNumber: resolvedOrderNumber,
+                externalId: resolvedExternalId,
                 courier: resolvedCourier,
                 staff: staffInfo
             };
@@ -372,9 +387,9 @@ async function placeOrder() {
         };
 
         const trackingOrder = {
-            id: result.orderId ?? order.id,
-            orderNumber: result.orderNumber ?? historyRecord.orderNumber ?? null,
-            externalId: result.externalId ?? historyRecord.externalId ?? null,
+            id: resolvedOrderId,
+            orderNumber: resolvedOrderNumber ?? historyRecord.orderNumber ?? null,
+            externalId: resolvedExternalId ?? historyRecord.externalId ?? null,
             userId: currentUser.id || order.userId || 0,
             status: 'Order Confirmed',
             dropOff: order.dropOff,
@@ -391,7 +406,7 @@ async function placeOrder() {
 
         globalCart.clear();
         const redirectId = result.orderId ?? order.id;
-        window.location.href = `/public/tracking.html?id=${encodeURIComponent(redirectId)}`;
+        window.location.href = `/public/tracking.html?id=${encodeURIComponent(resolvedOrderId)}`;
     } catch (err) {
         console.error('placeOrder failed', err);
         showError(err.message || 'Failed to place order. Please try again.');
