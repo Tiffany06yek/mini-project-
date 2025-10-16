@@ -1,15 +1,14 @@
 <?php
 session_start();
 header('Content-Type: application/json; charset=utf-8');
+require __DIR__ . '/backend/database.php';
 
-// 只允许 POST
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Please use POST to place an order.']);
     exit;
 }
 
-// 解析 JSON
 $raw = file_get_contents('php://input');
 $data = json_decode($raw, true);
 if (!is_array($data)) {
@@ -18,7 +17,6 @@ if (!is_array($data)) {
     exit;
 }
 
-// 基础校验
 $items = $data['items'] ?? [];
 if (!is_array($items) || count($items) === 0) {
     http_response_code(400);
@@ -36,7 +34,7 @@ $deliveryFee = isset($data['deliveryFee']) ? (float)$data['deliveryFee'] : 0.0;
 $total       = isset($data['total'])       ? (float)$data['total']       : ($subtotal + $deliveryFee);
 if ($subtotal <= 0 || $total <= 0) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Order amount invalid.']);
+    echo json_encode(['success' => false, 'message' => 'Invalid Amount.']);
     exit;
 }
 
@@ -71,7 +69,6 @@ function xiapee_normalise_addons(array $item): array {
     return $addons;
 }
 
-// ———————— 小工具函数 ————————
 function xiapee_parse_int($value): ?int {
     if (is_int($value)) return $value;
     if (is_float($value)) return (int)$value;
@@ -113,9 +110,7 @@ function xiapee_resolve_merchant_id(mysqli $conn, $merchantIdCandidate, array $i
     return (int)$ids[0];
 }
 
-/**
- * 解析产品 ID：优先 productId/id；若没有，则按 name 查产品表
- */
+
 function xiapee_resolve_product_id(mysqli $conn, array $item): ?int {
     foreach ([$item['productId'] ?? null, $item['id'] ?? null] as $cand) {
         $p = xiapee_parse_int($cand);
