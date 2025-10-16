@@ -1,6 +1,7 @@
 <?php
 session_start();
 header('Content-Type: application/json; charset=utf-8');
+require_once __DIR__ . '/../backend/database.php';
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     http_response_code(405);
@@ -36,9 +37,6 @@ if ($subtotal <= 0 || $total <= 0) {
     echo json_encode(['success' => false, 'message' => 'Invalid Amount.']);
     exit;
 }
-
-// 连接数据库
-require_once __DIR__ . '/../backend/database.php';
 
 function xiapee_prepare_optional(mysqli $conn, string $sql): ?mysqli_stmt {
     try {
@@ -89,9 +87,6 @@ function xiapee_orders_supports_custom_order_id(mysqli $conn): bool {
     return (bool)$supports;
 }
 
-/**
- * 根据 items 里的 vendorId 或传入的 merchantId，解析出唯一商家 ID
- */
 function xiapee_resolve_merchant_id(mysqli $conn, $merchantIdCandidate, array $items): int {
     $m = xiapee_parse_int($merchantIdCandidate);
     if ($m !== null && $m > 0) return $m;
@@ -159,7 +154,7 @@ try {
     $merchantId = xiapee_resolve_merchant_id($conn, $data['merchantId'] ?? null, $items);
 
     $notes          = trim((string)($data['notes'] ?? ''));
-    $paymentMethod  = in_array(($data['paymentMethod'] ?? 'wallet'), ['cash','card','wallet','online_banking'], true) ? $data['paymentMethod'] : 'wallet';
+    $paymentMethod  = 'wallet';
     $paymentStatus  = in_array(($data['paymentStatus'] ?? 'paid'),   ['pending','paid','failed','refunded'], true)     ? $data['paymentStatus']   : 'paid';
 
     // 可选外显单号（如 ORD-xxx）
@@ -291,7 +286,8 @@ try {
             }
             $statusStmt = $conn->prepare(sprintf('INSERT INTO `%s` (id, order_id, status) VALUES (?, ?, ?)', $statusTable));
             if ($statusStmt) {
-                $statusStmt->bind_param('iis', $statusHistoryId, $orderId, $data['orderStatus'] ?? 'placed');
+                $status = isset($data['orderStatus']) ? (string)$data['orderStatus'] : 'placed';
+                $statusStmt->bind_param('iis', $statusHistoryId, $orderId, $status);
                 $statusStmt->execute();
                 $statusStmt->close();
                 break;

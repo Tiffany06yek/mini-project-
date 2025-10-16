@@ -1,9 +1,4 @@
-
 import { globalCart } from '/public/assets/js/cart.js';
-
-const DEFAULT_COURIERS = [
-    { name: 'Assigned Courier', phone: '', merchantId: null }
-];
 
 let db = {};
 let currentUser = null;
@@ -239,7 +234,6 @@ function getCourierList() {
     if (override && Array.isArray(override.couriers) && override.couriers.length > 0) {
         return override.couriers;
     }
-    return DEFAULT_COURIERS;
 }
 
 function selectCourierForOrder(merchantId) {

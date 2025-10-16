@@ -373,7 +373,7 @@ function createPaymentElement(order) {
     `;
     
     paymentDiv.addEventListener('click', () => {
-        window.location.href = `/pages/tracking/index.html?id=${order.id}`;
+        window.location.href = `/public/tracking.html?id=${order.id}`;
     });
     
     return paymentDiv;

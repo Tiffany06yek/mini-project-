@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS orders (
   delivery_fee    DECIMAL(10,2) NOT NULL DEFAULT 0,
   subtotal        DECIMAL(10,2) NOT NULL,
   total           DECIMAL(10,2) NOT NULL,
-  payment_method  ENUM('cash','card','wallet','online_banking') NOT NULL,
+  payment_method  varchar(32) NOT NULL,
   payment_status  ENUM('pending','paid','failed','refunded') NOT NULL DEFAULT 'pending',
   created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_orders_buyer

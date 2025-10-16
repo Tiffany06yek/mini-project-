@@ -455,4 +455,5 @@ header {
     border-radius: 8px;
     font-weight: 500;
     transition: all 0.3s ease;
+    margin-left: 20px;
 }
