@@ -1,111 +1,95 @@
 <?php
-// 设置返回内容类型为 JSON
 header('Content-Type: application/json');
 
-// 获取 POST 请求的原始数据
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     http_response_code(405);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Only POST requests are allowed.'
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Only POST requests are allowed.']);
     exit;
 }
 
-$rawPayload = file_get_contents('php://input');
-$payload = json_decode($rawPayload, true);
-
+$raw = file_get_contents('php://input');
+$payload = json_decode($raw, true);
 if (!is_array($payload)) {
     http_response_code(400);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Invalid JSON payload.'
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Invalid JSON payload.']);
     exit;
 }
 
-$userId = isset($payload['userId']) ? (int)$payload['userId'] : 0;
-$items = $payload['items'] ?? [];
-
+$userId = (int)($payload['userId'] ?? 0);
+$items  = $payload['items'] ?? [];
 if ($userId <= 0) {
     http_response_code(422);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Missing or invalid userId.'
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Missing or invalid userId.']);
     exit;
 }
-
 if (!is_array($items) || count($items) === 0) {
     http_response_code(422);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Order items are required.'
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Order items are required.']);
     exit;
 }
 
-require_once __DIR__ . '/../backend/config.example.php';
+require_once __DIR__ . '/../backend/config.php'; // 用正式配置
 if (file_exists(__DIR__ . '/../backend/config.local.php')) {
     require_once __DIR__ . '/../backend/config.local.php';
 }
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-
 try {
     $conn = mysqli_connect($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME, (int)$DB_PORT);
     mysqli_set_charset($conn, 'utf8mb4');
-} catch (mysqli_sql_exception $e) {
+} catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Database connection failed.',
-        'error' => $e->getMessage()
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Database connection failed.']);
     exit;
 }
 
-$address = trim((string)($payload['dropOff'] ?? ''));
-$notes = trim((string)($payload['notes'] ?? ''));
-$customerName = trim((string)($payload['customerName'] ?? ''));
+// ---- 业务字段 ----
+$address        = trim((string)($payload['dropOff'] ?? ''));
+$notes          = trim((string)($payload['notes'] ?? ''));
+$customerName   = trim((string)($payload['customerName'] ?? ''));
 $customerNumber = trim((string)($payload['customerNumber'] ?? ''));
 
 if ($customerName !== '' || $customerNumber !== '') {
     $notes = trim($notes . "\nCustomer: " . $customerName . ($customerNumber !== '' ? " ({$customerNumber})" : ''));
 }
 
-$subtotal = isset($payload['subtotal']) ? (float)$payload['subtotal'] : 0.0;
-$deliveryFee = isset($payload['deliveryFee']) ? (float)$payload['deliveryFee'] : 0.0;
-$total = isset($payload['total']) ? (float)$payload['total'] : $subtotal + $deliveryFee;
-$paymentMethod = $payload['paymentMethod'] ?? 'wallet';
-$paymentStatus = $payload['paymentStatus'] ?? 'paid';
-$orderStatus = $payload['orderStatus'] ?? 'placed';
+$subtotal      = (float)($payload['subtotal'] ?? 0.0);
+$deliveryFee   = (float)($payload['deliveryFee'] ?? 0.0);
+$total         = (float)($payload['total'] ?? ($subtotal + $deliveryFee));
+$paymentMethod = 'wallet';
+$paymentStatus = 'paid';
+$orderStatus   = (string)($payload['orderStatus'] ?? 'placed');
 
+// 只允许同一商家
 $merchantIds = [];
-foreach ($items as $item) {
-    if (isset($item['vendorId']) && $item['vendorId'] !== '' && $item['vendorId'] !== null) {
-        $merchantIds[] = (int)$item['vendorId'];
+foreach ($items as $it) {
+    if (isset($it['vendorId']) && (int)$it['vendorId'] > 0) {
+        $merchantIds[] = (int)$it['vendorId'];
     }
 }
-$merchantIds = array_values(array_unique(array_filter($merchantIds, fn($id) => $id > 0)));
-
-
-// 确保接收到数据
+$merchantIds = array_values(array_unique($merchantIds));
 if (count($merchantIds) !== 1) {
     http_response_code(422);
-    echo json_encode([
-        'success' => false,
-        'message' => 'All items in an order must belong to the same merchant.'
-    ]);
+    echo json_encode(['success' => false, 'message' => 'All items in an order must belong to the same merchant.']);
     $conn->close();
     exit;
 }
-
 $merchantId = $merchantIds[0];
 
 try {
     $conn->begin_transaction();
 
+    // 1) 扣款：余额足够才扣
+    $stmt = $conn->prepare('UPDATE users SET balance = balance - ? WHERE id = ? AND balance >= ?');
+    // 金额(double), 用户(int), 金额(double)
+    $stmt->bind_param('did', $total, $userId, $total);
+    $stmt->execute();
+    if ($stmt->affected_rows !== 1) {
+        throw new RuntimeException('Insufficient wallet balance.');
+    }
+    $stmt->close();
+
+    // 2) 创建订单
     $orderStmt = $conn->prepare(
         'INSERT INTO orders (buyer_id, merchant_id, address, notes, delivery_fee, subtotal, total, payment_method, payment_status)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
@@ -123,101 +107,134 @@ try {
         $paymentStatus
     );
     $orderStmt->execute();
-    $orderId = $conn->insert_id;
+    $orderId = (int)$conn->insert_id;
     $orderStmt->close();
 
-    $itemStmt = $conn->prepare(
-        'INSERT INTO order_items (order_id, product_id, qty, unit_price) VALUES (?, ?, ?, ?)'
-    );
-    $addonStmt = $conn->prepare(
-        'INSERT INTO order_item_addons (order_item_id, addon_id, price) VALUES (?, ?, ?)'
-    );
+    // 3) 订单项 + 加料
+    $itemStmt  = $conn->prepare('INSERT INTO order_items (order_id, product_id, qty, unit_price) VALUES (?, ?, ?, ?)');
+    $addonStmt = $conn->prepare('INSERT INTO order_item_addons (order_item_id, addon_id, price) VALUES (?, ?, ?)');
 
     foreach ($items as $item) {
-        $productId = isset($item['productId']) ? (int)$item['productId'] : 0;
-        $qty = isset($item['qty']) ? (int)$item['qty'] : 0;
-        $pricePerUnit = isset($item['price']) ? (float)$item['price'] : 0.0;
+        $productId    = (int)($item['productId'] ?? 0);
+        $qty          = (int)($item['qty'] ?? 0);
+        $pricePerUnit = (float)($item['price'] ?? 0.0);
 
         if ($productId <= 0 || $qty <= 0) {
             throw new RuntimeException('Invalid order item payload.');
         }
 
+        // 计算基础单价 = 显示单价 - 加料合计（若你前端 price 已含加料）
         $addonTotal = 0.0;
-        if (isset($item['addons']) && is_array($item['addons'])) {
-            foreach ($item['addons'] as $addon) {
-                $addonTotal += isset($addon['price']) ? (float)$addon['price'] : 0.0;
+        if (!empty($item['addons']) && is_array($item['addons'])) {
+            foreach ($item['addons'] as $ad) {
+                $addonTotal += (float)($ad['price'] ?? 0.0);
             }
         }
-    }
-
         $baseUnitPrice = $pricePerUnit - $addonTotal;
-        if ($baseUnitPrice < 0) {
+        if ($baseUnitPrice < 0) { // 容错
             $baseUnitPrice = $pricePerUnit;
+        }
 
-        // 更新用户余额
         $itemStmt->bind_param('iiid', $orderId, $productId, $qty, $baseUnitPrice);
         $itemStmt->execute();
-        $orderItemId = $conn->insert_id;
+        $orderItemId = (int)$conn->insert_id;
 
-        if (isset($item['addons']) && is_array($item['addons']) && count($item['addons']) > 0) {
-            foreach ($item['addons'] as $addon) {
-                $addonId = isset($addon['id']) ? (int)$addon['id'] : (isset($addon['addon_ID']) ? (int)$addon['addon_ID'] : 0);
-                $addonPrice = isset($addon['price']) ? (float)$addon['price'] : 0.0;
-                if ($addonId <= 0) {
-                    continue;
+        if (!empty($item['addons']) && is_array($item['addons'])) {
+            foreach ($item['addons'] as $ad) {
+                $addonId = (int)($ad['id'] ?? 0);
+                $aprice  = (float)($ad['price'] ?? 0.0);
+                if ($addonId > 0 && $aprice >= 0) {
+                    $addonStmt->bind_param('iid', $orderItemId, $addonId, $aprice);
+                    $addonStmt->execute();
                 }
-                $addonStmt->bind_param('iid', $orderItemId, $addonId, $addonPrice);
-                $addonStmt->execute();
             }
         }
-        $itemStmt->close();
-        $addonStmt->close();
-    
-        $paymentIdResult = $conn->query('SELECT COALESCE(MAX(payment_id), 0) AS max_id FROM payments');
-        $paymentRow = $paymentIdResult->fetch_assoc();
-        $paymentId = (int)($paymentRow['max_id'] ?? 0) + 1;
-        $paymentIdResult->free();
-    
-        $paymentStmt = $conn->prepare(
-            'INSERT INTO payments (payment_id, order_id, payment_method, status) VALUES (?, ?, ?, ?)'
-        );
-        $paymentStmt->bind_param('iiss', $paymentId, $orderId, $paymentMethod, $paymentStatus);
-        $paymentStmt->execute();
-        $paymentStmt->close();
-    
-        $statusResult = $conn->query('SELECT COALESCE(MAX(id), 0) AS max_id FROM Order_Status_History');
-        $statusRow = $statusResult->fetch_assoc();
-        $statusHistoryId = (int)($statusRow['max_id'] ?? 0) + 1;
-        $statusResult->free();
-    
-        $statusStmt = $conn->prepare(
-            'INSERT INTO Order_Status_History (id, order_id, status) VALUES (?, ?, ?)'
-        );
-        $statusStmt->bind_param('iis', $statusHistoryId, $orderId, $orderStatus);
-        $statusStmt->execute();
-        $statusStmt->close();
-    
-        $conn->commit();
-    
-        echo json_encode([
-            'success' => true,
-            'message' => 'Order created successfully.',
-            'orderId' => $orderId,
-            'paymentId' => $paymentId,
-            'statusHistoryId' => $statusHistoryId
-        ]);
     }
+    $itemStmt->close();
+    $addonStmt->close();
+
+    $paymentId = null;
+    $res = $conn->query('SELECT COALESCE(MAX(payment_id), 0) + 1 AS next_id FROM payments FOR UPDATE');
+    if ($res instanceof mysqli_result) {
+        $row = $res->fetch_assoc();
+        $paymentId = (int)($row['next_id'] ?? 1);
+        $res->free();
+    } else {
+        $paymentId = 1;
+    }
+    $paymentStmt = $conn->prepare('INSERT INTO payments (order_id, payment_method, status) VALUES (?, ?, ?)
+                    ON DUPLICATE KEY UPDATE payment_method = VALUES(payment_method), status = VALUES(status)');
+    $paymentStmt->bind_param('iss', $orderId, $paymentMethod, $paymentStatus);
+    $paymentStmt->execute();
+    $paymentId = (int)$conn->insert_id;
+    $paymentStmt->close();
+
+    if ($paymentId === 0) {
+        $lookupStmt = $conn->prepare('SELECT payment_id FROM payments WHERE order_id = ? LIMIT 1');
+        if ($lookupStmt) {
+            $lookupStmt->bind_param('i', $orderId);
+            $lookupStmt->execute();
+            $lookupResult = $lookupStmt->get_result();
+            $lookupRow = $lookupResult ? $lookupResult->fetch_assoc() : null;
+            if ($lookupResult) {
+                $lookupResult->free();
+            }
+            if ($lookupRow && isset($lookupRow['payment_id'])) {
+                $paymentId = (int)$lookupRow['payment_id'];
+            }
+            $lookupStmt->close();
+        }
+    }
+
+    // 5) 订单状态历史（两个可能的表名里挑一个能插入的）
+    $statusHistoryId = null; $statusInserted = false;
+    foreach (['order_status_history', 'Order_Status_History'] as $statusTable) {
+        try {
+            $rs = $conn->query(sprintf('SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM `%s` FOR UPDATE', $statusTable));
+            if ($rs instanceof mysqli_result) {
+                $r = $rs->fetch_assoc();
+                $statusHistoryId = (int)($r['next_id'] ?? 1);
+                $rs->free();
+            } else {
+                $statusHistoryId = 1;
+            }
+            $st = $conn->prepare(sprintf('INSERT INTO `%s` (id, order_id, status) VALUES (?, ?, ?)', $statusTable));
+            if ($st) {
+                $st->bind_param('iis', $statusHistoryId, $orderId, $orderStatus);
+                $st->execute();
+                $st->close();
+                $statusInserted = true;
+                break;
+            }
+        } catch (Throwable $ignore) {}
+    }
+
+    // 6) 查最新余额（可选）
+    $get = $conn->prepare('SELECT balance FROM users WHERE id = ?');
+    $get->bind_param('i', $userId);
+    $get->execute();
+    $gr = $get->get_result();
+    $newBalance = ($row = $gr->fetch_assoc()) ? (float)$row['balance'] : null;
+    $gr->free();
+    $get->close();
+
+    $conn->commit();
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'Order created successfully.',
+        'orderId' => $orderId,
+        'paymentId' => $paymentId,
+        'statusHistoryId' => $statusHistoryId,
+        'statusHistoryInserted' => $statusInserted,
+        'walletBalance' => $newBalance
+    ]);
+    exit;
+
 } catch (Throwable $e) {
-        $conn->rollback();
-        http_response_code(500);
-        echo json_encode([
-            'success' => false,
-            'message' => 'Failed to create order.',
-            'error' => $e->getMessage()
-        ]);
-    } finally {
-        $conn->close();
-    }
-
-?>
-
+    try { $conn->rollback(); } catch (Throwable $ignore) {}
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    exit;
+} finally {
+}

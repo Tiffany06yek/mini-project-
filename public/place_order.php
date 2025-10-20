@@ -143,11 +143,7 @@ function xiapee_fetch_courier(mysqli $conn, ?int $merchantId): ?array {
     return $row ?: null;
 }
 
-// ———————— 主流程 ————————
 try {
-    // 可选：让 mysqli 抛异常，便于捕获
-    // mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-
     $conn->begin_transaction();
 
     $buyerId    = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0; // 没登录就 0，按你需求调整
@@ -155,7 +151,25 @@ try {
 
     $notes          = trim((string)($data['notes'] ?? ''));
     $paymentMethod  = 'wallet';
-    $paymentStatus  = in_array(($data['paymentStatus'] ?? 'paid'),   ['pending','paid','failed','refunded'], true)     ? $data['paymentStatus']   : 'paid';
+    $paymentStatus  = in_array(($data['paymentStatus'] ?? 'paid'), ['pending','paid','failed','refunded'], true)
+        ? $data['paymentStatus']
+        : 'paid';
+
+    if (!function_exists('payment_status')) {
+        function payment_status($status): string
+        {
+            $status = strtolower(trim((string)$status));
+            switch ($status) {
+                case 'paid':
+                    return 'success';
+                case 'failed':
+                    return 'failed';
+                case 'pending':
+                default:
+                    return 'pending';
+            }
+        }
+    }
 
     // 可选外显单号（如 ORD-xxx）
     $customOrderId  = null;
@@ -263,11 +277,25 @@ try {
         } else {
             $paymentId = 1;
         }
-        $paymentStmt = $conn->prepare('INSERT INTO payments (payment_id, order_id, payment_method, status) VALUES (?, ?, ?, ?)');
-        if ($paymentStmt) {
-            $paymentStmt->bind_param('iiss', $paymentId, $orderId, $paymentMethod, $paymentStatus);
-            $paymentStmt->execute();
-            $paymentStmt->close();
+        $paymentStmt = $conn->prepare(
+            'INSERT INTO payments (order_id, payment_method, status) VALUES (?, ?, ?)
+             ON DUPLICATE KEY UPDATE payment_method = VALUES(payment_method), status = VALUES(status)'
+        );
+        if ($paymentId === 0) {
+            $lookupStmt = $conn->prepare('SELECT payment_id FROM payments WHERE order_id = ? LIMIT 1');
+            if ($lookupStmt) {
+                $lookupStmt->bind_param('i', $orderId);
+                $lookupStmt->execute();
+                $lookupResult = $lookupStmt->get_result();
+                $row = $lookupResult ? $lookupResult->fetch_assoc() : null;
+                if ($lookupResult) {
+                    $lookupResult->free();
+                }
+                if ($row && isset($row['payment_id'])) {
+                    $paymentId = (int)$row['payment_id'];
+                }
+                $lookupStmt->close();
+            }
         }
     } catch (mysqli_sql_exception $ignored) {
         $paymentId = null;

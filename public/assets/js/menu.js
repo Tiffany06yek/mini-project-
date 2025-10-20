@@ -3,7 +3,6 @@ import { Header } from '/public/assets/js/header.js';
 // Initialize header
 Header();
 
-// ---------- 配置：确保这个路径与后端实际文件一致 ----------
 const PUBLIC_BASE = (() => {
   const marker = '/public/';
   const path = window.location.pathname;
@@ -118,7 +117,7 @@ function renderProducts(products) {
 
   if (!products || products.length === 0) {
     const p = document.createElement('p');
-    p.textContent = '此餐廳尚未上傳任何菜單。';
+    p.textContent = 'No menu uploaded.';
     productsGrid.appendChild(p);
     return;
   }

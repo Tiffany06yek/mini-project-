@@ -56,7 +56,7 @@ async function loadDB() {
     if (db) return;
     let base = null;
     try {
-        const res = await fetch('/data/db.json', { cache: 'no-store' });
+        const res = await fetch('/backend/database.php', { cache: 'no-store' });
         if (res.ok) {
             base = await res.json();
         }
@@ -388,23 +388,7 @@ async function init() {
         return;
     }
     const localOrder = findOrder(id);
-    const remoteOrder = await loadOrderFromServer(id, { silent: Boolean(localOrder) });
-
-    if (remoteOrder) {
-        const mergedItems = Array.isArray(remoteOrder.items) && remoteOrder.items.length > 0
-            ? remoteOrder.items
-            : (Array.isArray(localOrder?.items) ? localOrder.items : []);
-        order = {
-            ...(localOrder || {}),
-            ...remoteOrder,
-            items: mergedItems,
-            statusSteps: Array.isArray(remoteOrder.statusSteps) && remoteOrder.statusSteps.length > 0
-                ? remoteOrder.statusSteps
-                : (Array.isArray(localOrder?.statusSteps) ? localOrder.statusSteps : []),
-        };
-    } else if (localOrder) {
         order = localOrder;
-    }
 
     if (!order) {
         setStatusMessage('Order not found.', 'error');
@@ -415,12 +399,7 @@ async function init() {
     }
     setStatusMessage(`Status: ${normaliseStatus(order.status)}`);
     render();
-    if (remoteOrder) {
-        stopProgressTimer();
-        startRemoteRefresh(id);
-    } else {
         scheduleProgress();
-    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

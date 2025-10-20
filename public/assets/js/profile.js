@@ -151,26 +151,160 @@ function getEffectiveDB() {
 
 async function ensureDB() {
     try {
-        const res = await fetch('/data/db.json');
-        const base = await res.json();
+        const res = await fetch('/backend/database.php', { credentials: 'include' });
+        const payload = await res.json();
+        if (!res.ok || payload?.success === false) {
+            throw new Error(payload?.message || 'Failed to load database snapshot');
+        }
+        return payload;
+    } catch (error) {
         const override = getEffectiveDB();
-        return override || base;
-    } catch {
+        if (override) {
+            return override;
+        }
+        console.warn('Falling back to sample data for profile page:', error);
         return null;
+    }
+}
+
+function resolveDefaultAddress(user) {
+    if (!user || typeof user !== 'object') {
+        return '';
+    }
+
+    const candidates = [
+        user.address,
+        user.default_address,
+        user.defaultAddress,
+        user.primaryAddress,
+    ];
+
+    for (const value of candidates) {
+        if (typeof value === 'string' && value.trim() !== '') {
+            return value.trim();
+        }
+    }
+
+    return '';
+}
+
+function normalizeAddressesFromUser(user) {
+    if (!user || typeof user !== 'object') {
+        return null;
+    }
+
+    if (Array.isArray(user.addresses) && user.addresses.length > 0) {
+        const prepared = user.addresses
+            .map((addr, index) => {
+                if (typeof addr === 'string') {
+                    const trimmed = addr.trim();
+                    if (!trimmed) {
+                        return null;
+                    }
+                    return {
+                        id: index + 1,
+                        type: 'Home',
+                        name: user.name || sampleData.user.name,
+                        address: trimmed,
+                        isDefault: index === 0,
+                    };
+                }
+
+                if (!addr || typeof addr !== 'object') {
+                    return null;
+                }
+
+                const text = typeof addr.address === 'string' && addr.address.trim() !== ''
+                    ? addr.address.trim()
+                    : typeof addr.text === 'string' && addr.text.trim() !== ''
+                        ? addr.text.trim()
+                        : '';
+
+                if (!text) {
+                    return null;
+                }
+
+                return {
+                    id: addr.id ?? index + 1,
+                    type: addr.type || addr.label || 'Home',
+                    name: addr.name || user.name || sampleData.user.name,
+                    address: text,
+                    isDefault: Boolean(addr.isDefault || addr.default || addr.primary || index === 0),
+                };
+            })
+            .filter(Boolean);
+
+        if (prepared.length === 0) {
+            return null;
+        }
+
+        if (!prepared.some(addr => addr.isDefault)) {
+            prepared[0].isDefault = true;
+        }
+
+        return prepared;
+    }
+
+    const defaultAddress = resolveDefaultAddress(user);
+    if (!defaultAddress) {
+        return null;
+    }
+
+    return [{
+        id: user.id || 1,
+        type: 'Home',
+        name: user.name || sampleData.user.name,
+        address: defaultAddress,
+        isDefault: true,
+    }];
+}
+
+function applyUserSnapshotToSample(user) {
+    if (!user || typeof user !== 'object') {
+        return;
+    }
+
+    if (user.name) {
+        sampleData.user.name = user.name;
+    }
+
+    const emailCandidate = user.email || user.school_email || user.schoolEmail;
+    if (typeof emailCandidate === 'string' && emailCandidate.trim() !== '') {
+        sampleData.user.email = emailCandidate.trim();
+    } else if (!sampleData.user.email && user.name) {
+        sampleData.user.email = `${user.name.toLowerCase().replace(/\s+/g,'')}@example.com`;
+    }
+
+    const phoneCandidate = user.phone || user.customerNumber || user.customer_number;
+    if (typeof phoneCandidate === 'string' && phoneCandidate.trim() !== '') {
+        sampleData.user.phone = phoneCandidate.trim();
+    }
+
+    const balanceCandidate = user.balance ?? user.walletBalance;
+    const normalizedBalance = Number(balanceCandidate);
+    if (!Number.isNaN(normalizedBalance)) {
+        sampleData.user.walletBalance = normalizedBalance;
+    }
+
+    const addresses = normalizeAddressesFromUser(user);
+    if (addresses && addresses.length) {
+        sampleData.addresses = addresses;
+        const defaultEntry = addresses.find(addr => addr.isDefault) || addresses[0];
+        if (defaultEntry) {
+            sampleData.user.defaultAddress = defaultEntry.address;
+        }
     }
 }
 
 // Initialize the profile page
 document.addEventListener('DOMContentLoaded', async function() {
     const db = await ensureDB();
-    if (db?.users?.length) {
-        const user = db.users[0];
-        sampleData.user.name = user.name;
-        sampleData.user.email = `${user.name.toLowerCase().replace(/\s+/g,'')}@example.com`;
-        sampleData.user.phone = '+60 12-345 6789';
-        sampleData.user.walletBalance = Number(user.balance || 0);
+    const userSnapshot = (db?.users && db.users[0]) || db?.currentUser;
+    if (userSnapshot) {
+        const user = userSnapshot;
+        applyUserSnapshotToSample(user);
         // Map orders
-        const orders = user.orderHistory || [];
+        const orders = user.orderHistory || db?.orders || [];
         sampleData.orders = orders.map(o => ({
             id: o.id,
             date: new Date(o.timestamp||Date.now()).toISOString().split('T')[0],
@@ -178,8 +312,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             restaurant: (o.items?.[0]?.vendorName) || 'Mixed Vendors',
             items: o.items?.reduce((n,it)=>n+Number(it.qty||0),0) || 0,
             total: Number(o.total||0),
-            deliveryTime: '-' 
+            deliveryTime: '-'
         }));
+        sampleData.user.totalOrders = sampleData.orders.length;
     }
     initializeProfile();
     loadOrderHistory();
@@ -191,10 +326,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Live updates from tracking page: poll override DB
     setInterval(async () => {
         const dbLive = getEffectiveDB();
-        if (dbLive?.users?.length) {
-            const user = dbLive.users[0];
-            const orders = user.orderHistory || [];
-            sampleData.user.walletBalance = Number(user.balance || 0);
+        const liveUser = (dbLive?.users && dbLive.users[0]) || dbLive?.currentUser;
+        if (liveUser) {
+            const user = liveUser;
+            applyUserSnapshotToSample(user);
+            const orders = user.orderHistory || dbLive?.orders || [];
             sampleData.orders = orders.map(o => ({
                 id: o.id,
                 date: new Date(o.timestamp||Date.now()).toISOString().split('T')[0],
@@ -204,9 +340,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 total: Number(o.total||0),
                 deliveryTime: '-' 
             }));
+            sampleData.user.totalOrders = sampleData.orders.length;
             loadOrderHistory();
             loadPaymentHistory();
             loadWalletData();
+            loadAddresses();
         }
     }, 5000);
 });
@@ -693,7 +831,7 @@ async function updateWalletBalance() {
 async function updateDatabaseBalance(newBalance) {
     try {
         // Get current database
-        const response = await fetch('/data/db.json');
+        const response = await fetch('/backend/database.php');
         const db = await response.json();
         
         // Update user balance
