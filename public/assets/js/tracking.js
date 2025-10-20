@@ -18,6 +18,15 @@ const billSub = document.getElementById('bill-subtotal');
 const billDel = document.getElementById('bill-delivery');
 const billTot = document.getElementById('bill-total');
 const successEl = document.getElementById('success');
+//review
+const reviewSection = document.getElementById('review-section');
+const reviewMerchantEl = document.getElementById('review-merchant');
+const reviewSummaryEl = document.getElementById('review-summary');
+const reviewForm = document.getElementById('review-form');
+const reviewRatingEl = document.getElementById('review-rating');
+const reviewTextEl = document.getElementById('review-text');
+const reviewMessageEl = document.getElementById('review-message');
+let reviewSubmitting = false;
 
 const stepConfirmed = document.getElementById('step-confirmed');
 const stepPrepared = document.getElementById('step-prepared');
@@ -181,6 +190,115 @@ function updateProgressSteps(targetOrder) {
     }
 }
 
+function setReviewMessage(message = '', tone = 'info') {
+    if (!reviewMessageEl) return;
+    reviewMessageEl.textContent = message || '';
+    reviewMessageEl.className = 'review-message';
+    if (message) {
+        reviewMessageEl.classList.add(`review-${tone}`);
+    }
+}
+
+function updateReviewSummaryDisplay(summary, review) {
+    if (reviewSummaryEl) {
+        if (summary && summary.count > 0) {
+            const plural = summary.count === 1 ? 'review' : 'reviews';
+            reviewSummaryEl.textContent = `Average rating: ${Number(summary.average || 0).toFixed(1)} (${summary.count} ${plural})`;
+        } else {
+            reviewSummaryEl.textContent = 'No reviews yet. Be the first to share your experience!';
+        }
+    }
+    if (reviewRatingEl) {
+        const value = review && review.rating ? Number(review.rating).toString() : '';
+        reviewRatingEl.value = value;
+    }
+    if (reviewTextEl) {
+        reviewTextEl.value = review && typeof review.text === 'string' ? review.text : '';
+    }
+}
+
+async function loadReviewSummary(merchantId) {
+    if (!merchantId || !reviewSection) return;
+    setReviewMessage('Loading reviews...', 'info');
+    try {
+        const response = await fetch(`/public/review.php?merchantId=${encodeURIComponent(merchantId)}`, { credentials: 'include' });
+        const payload = await response.json();
+        if (!response.ok || payload?.success === false) {
+            throw new Error(payload?.message || 'Unable to load reviews right now.');
+        }
+        updateReviewSummaryDisplay(payload.summary ?? { count: 0, average: 0 }, payload.review || null);
+        setReviewMessage('', 'info');
+    } catch (err) {
+        setReviewMessage(err.message || 'Unable to load reviews right now.', 'error');
+    }
+}
+
+async function submitReview(event) {
+    if (event) {
+        event.preventDefault();
+    }
+    if (!order || !order.merchantId || !reviewForm || reviewSubmitting) {
+        return;
+    }
+    const ratingValue = reviewRatingEl ? Number(reviewRatingEl.value) : 0;
+    const textValue = reviewTextEl ? reviewTextEl.value.trim() : '';
+    if (!ratingValue || ratingValue < 1 || ratingValue > 5) {
+        setReviewMessage('Please select a rating between 1 and 5 stars.', 'error');
+        return;
+    }
+    reviewSubmitting = true;
+    reviewForm.classList.add('is-submitting');
+    setReviewMessage('Saving your review...', 'info');
+    try {
+        const response = await fetch('/public/review.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                merchantId: order.merchantId,
+                rating: ratingValue,
+                text: textValue,
+            }),
+        });
+        const payload = await response.json();
+        if (!response.ok || payload?.success === false) {
+            throw new Error(payload?.message || 'Failed to save review.');
+        }
+        updateReviewSummaryDisplay(payload.summary ?? { count: 0, average: 0 }, payload.review || null);
+        setReviewMessage('Thank you! Your review has been saved.', 'success');
+    } catch (err) {
+        setReviewMessage(err.message || 'Unable to save your review right now.', 'error');
+    } finally {
+        reviewSubmitting = false;
+        reviewForm.classList.remove('is-submitting');
+    }
+}
+
+function updateReviewSection(stageIndex) {
+    if (!reviewSection) {
+        return;
+    }
+    if (!order || !order.merchantId || stageIndex < 0) {
+        reviewSection.hidden = true;
+        return;
+    }
+
+    reviewSection.hidden = false;
+    const loadedFor = reviewSection.dataset.loadedFor || '';
+    const merchantKey = order.merchantId.toString();
+    if (reviewMerchantEl) {
+        reviewMerchantEl.textContent = order.merchantName || 'this restaurant';
+    }
+
+    if (loadedFor !== merchantKey) {
+        reviewSection.dataset.loadedFor = merchantKey;
+        updateReviewSummaryDisplay(null, null);
+        setReviewMessage('', 'info');
+        loadReviewSummary(order.merchantId);
+    }
+}
+
+
 function render() {
     if (!order) return;
     const stageIndex = getStageIndexFromOrder(order);
@@ -232,6 +350,7 @@ function render() {
     if (billDel) billDel.textContent = `RM ${Number(order.deliveryFee || 0).toFixed(2)}`;
     if (billTot) billTot.textContent = `RM ${Number(order.total || 0).toFixed(2)}`;
     updateProgressSteps(order);
+    updateReviewSection(stageIndex);
 }
 
 function persistOrderOverride(updated) {
@@ -316,6 +435,8 @@ async function loadOrderFromServer(id, options = {}) {
             subtotal: Number(srv.subtotal || 0),
             deliveryFee: Number(srv.deliveryFee || 0),
             total: Number(srv.total || 0),
+            merchantId: srv.merchantId ?? order?.merchantId ?? null,
+            merchantName: srv.merchantName || order?.merchantName || '',
             items: Array.isArray(srv.items) ? srv.items.map(item => ({
                 id: item.id || item.productId || item.name,
                 name: item.name || 'Item',

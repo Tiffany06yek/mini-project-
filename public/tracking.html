@@ -90,6 +90,34 @@
             </div>
         </div>
 
+        <section class="review-section" id="review-section" hidden>
+            <h3>Share Your Review for <span id="review-merchant">this restaurant</span></h3>
+            <p class="review-summary" id="review-summary">No reviews yet. Be the first to share your experience!</p>
+            <form class="review-form" id="review-form">
+                <div class="review-field">
+                    <label for="review-rating">Rating</label>
+                    <select id="review-rating" required>
+                        <option value="">Select rating</option>
+                        <option value="5">5 - Excellent</option>
+                        <option value="4.5">4.5</option>
+                        <option value="4">4 - Very Good</option>
+                        <option value="3.5">3.5</option>
+                        <option value="3">3 - Good</option>
+                        <option value="2.5">2.5</option>
+                        <option value="2">2 - Fair</option>
+                        <option value="1.5">1.5</option>
+                        <option value="1">1 - Poor</option>
+                    </select>
+                </div>
+                <div class="review-field">
+                    <label for="review-text">Comments (optional)</label>
+                    <textarea id="review-text" rows="4" placeholder="Tell us about your meal..."></textarea>
+                </div>
+                <button type="submit" class="review-submit-btn">Submit Review</button>
+            </form>
+            <div class="review-message" id="review-message" role="status"></div>
+        </section>
+
         <div class="success-message" id="success" hidden>
             <div class="success-icon">🎉</div>
             <h2>Order Delivered Successfully!</h2>

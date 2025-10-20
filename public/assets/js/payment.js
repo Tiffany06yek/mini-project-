@@ -194,9 +194,17 @@ function makeOrderPayload() {
     const summary = globalCart.getCartSummary();
     const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substring(2,7).toUpperCase()}`;
     const merchantIds = new Set();
+    let merchantName = '';
+    let merchantLocation = '';
     items.forEach(item => {
         if (item.vendorId !== undefined && item.vendorId !== null && item.vendorId !== '') {
             merchantIds.add(item.vendorId);
+        }
+        if (!merchantName && item.vendorName) {
+            merchantName = item.vendorName;
+        }
+        if (!merchantLocation && item.vendorLocation) {
+            merchantLocation = item.vendorLocation;
         }
     });
 
@@ -212,6 +220,8 @@ function makeOrderPayload() {
         paymentMethod: 'wallet',
         paymentStatus: 'paid',
         orderStatus: 'placed',
+        merchantName,
+        merchantLocation,
         merchantId: merchantIds.size === 1 ? Array.from(merchantIds)[0] : null,
         dropOff: addressValue,
         timestamp: new Date().toISOString()
@@ -266,10 +276,15 @@ function normaliseTrackingItems(items) {
 function persistOrderForTracking(orderRecord) {
     try {
         const base = getEffectiveDB() || {};
+        const normalisedRecord = {
+            ...orderRecord,
+            merchantId: orderRecord.merchantId ?? orderRecord.merchant_id ?? null,
+            merchantName: orderRecord.merchantName ?? orderRecord.merchant_name ?? '',
+        };
         const orders = Array.isArray(base.orders)
             ? base.orders.filter(o => (o?.id || '').toString() !== (orderRecord.id || '').toString())
             : [];
-        orders.push(orderRecord);
+        orders.push(normalisedRecord);
 
         let users = Array.isArray(base.users) ? base.users.map(user => {
             const userId = user?.id ?? user?.userId;
@@ -279,7 +294,7 @@ function persistOrderForTracking(orderRecord) {
             const history = Array.isArray(user.orderHistory)
                 ? user.orderHistory.filter(o => (o?.id || '').toString() !== (orderRecord.id || '').toString())
                 : [];
-            history.push(orderRecord);
+            history.push(normalisedRecord);
             return { ...user, orderHistory: history };
         }) : [];
 
@@ -288,7 +303,7 @@ function persistOrderForTracking(orderRecord) {
                 id: orderRecord.userId,
                 name: currentUser?.name || '',
                 phone: currentUser?.customerNumber || currentUser?.phone || '',
-                orderHistory: [orderRecord]
+                orderHistory: [normalisedRecord]
             }];
         }
 
@@ -346,6 +361,7 @@ async function placeOrder() {
         const resolvedOrderId = result.orderId ?? order.id;
         const resolvedOrderNumber = result.orderNumber ?? (typeof result.orderId === 'number' ? result.orderId : null);
         const resolvedExternalId = result.externalId ?? (typeof resolvedOrderId === 'string' ? resolvedOrderId : null);
+        const resolvedMerchantName = result.merchantName ?? order.merchantName ?? '';
 
         const newBalance = balance - Number(order.total || 0);
         if (!Number.isNaN(newBalance) && walletBalance) {
@@ -363,6 +379,7 @@ async function placeOrder() {
             };
             const historyRecord = {
                 ...order,
+                merchantName: resolvedMerchantName,
                 id: resolvedOrderId,
                 orderNumber: resolvedOrderNumber,
                 externalId: resolvedExternalId,
@@ -379,6 +396,7 @@ async function placeOrder() {
             balance: newBalance,
             orderHistory
         };
+        order.merchantName = resolvedMerchantName;
 
         const trackingOrder = {
             id: resolvedOrderId,
@@ -386,6 +404,8 @@ async function placeOrder() {
             externalId: resolvedExternalId ?? historyRecord.externalId ?? null,
             userId: currentUser.id || order.userId || 0,
             status: 'Order Confirmed',
+            merchantId: order.merchantId || historyRecord.merchantId || null,
+            merchantName: resolvedMerchantName || historyRecord.merchantName || '',
             dropOff: order.dropOff,
             staff: staffInfo,
             courier: resolvedCourier,

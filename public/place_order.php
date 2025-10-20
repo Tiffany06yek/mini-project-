@@ -151,9 +151,7 @@ try {
 
     $notes          = trim((string)($data['notes'] ?? ''));
     $paymentMethod  = 'wallet';
-    $paymentStatus  = in_array(($data['paymentStatus'] ?? 'paid'), ['pending','paid','failed','refunded'], true)
-        ? $data['paymentStatus']
-        : 'paid';
+    $paymentStatus  = 'paid';
 
     if (!function_exists('payment_status')) {
         function payment_status($status): string
@@ -268,38 +266,17 @@ try {
     if ($addonStmt) $addonStmt->close();
 
     $paymentId = null;
-    try {
-        $paymentIdResult = $conn->query('SELECT COALESCE(MAX(payment_id), 0) AS max_id FROM payments');
-        if ($paymentIdResult instanceof mysqli_result) {
-            $row = $paymentIdResult->fetch_assoc();
-            $paymentId = (int)($row['max_id'] ?? 0) + 1;
-            $paymentIdResult->free();
-        } else {
-            $paymentId = 1;
+    $paymentStmt = $conn->prepare('INSERT INTO payments (order_id, payment_method, status) VALUES (?, ?, ?)');
+    if ($paymentStmt) {
+        $paymentStmt->bind_param('iss', $orderId, $paymentMethod, $paymentStatus);
+        try {
+            $paymentStmt->execute();
+            $paymentId = (int)$conn->insert_id;
+        } catch (mysqli_sql_exception $ignored) {
+            $paymentId = null;
         }
-        $paymentStmt = $conn->prepare(
-            'INSERT INTO payments (order_id, payment_method, status) VALUES (?, ?, ?)
-             ON DUPLICATE KEY UPDATE payment_method = VALUES(payment_method), status = VALUES(status)'
-        );
-        if ($paymentId === 0) {
-            $lookupStmt = $conn->prepare('SELECT payment_id FROM payments WHERE order_id = ? LIMIT 1');
-            if ($lookupStmt) {
-                $lookupStmt->bind_param('i', $orderId);
-                $lookupStmt->execute();
-                $lookupResult = $lookupStmt->get_result();
-                $row = $lookupResult ? $lookupResult->fetch_assoc() : null;
-                if ($lookupResult) {
-                    $lookupResult->free();
-                }
-                if ($row && isset($row['payment_id'])) {
-                    $paymentId = (int)$row['payment_id'];
-                }
-                $lookupStmt->close();
-            }
+        $paymentStmt->close();
         }
-    } catch (mysqli_sql_exception $ignored) {
-        $paymentId = null;
-    }
 
     $statusHistoryId = null;
     foreach (['order_status_history', 'Order_Status_History'] as $statusTable) {

@@ -458,4 +458,94 @@ header {
     margin-left: 20px;
 }
 
+.review-section {
+    margin: 40px auto 0;
+    max-width: 700px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.review-section h3 {
+    font-size: 22px;
+    color: #2d5a3d;
+    margin-bottom: 10px;
+}
+
+.review-summary {
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.review-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.review-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.review-field label {
+    font-weight: 600;
+    color: #2d5a3d;
+}
+
+.review-field select,
+.review-field textarea {
+    padding: 10px 12px;
+    border: 1px solid #cbd5cb;
+    border-radius: 8px;
+    font-size: 15px;
+    resize: vertical;
+}
+
+.review-field textarea {
+    min-height: 100px;
+}
+
+.review-submit-btn {
+    align-self: flex-start;
+    padding: 12px 24px;
+    background: #4a7c59;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s ease;
+}
+
+.review-submit-btn:hover,
+.review-submit-btn:focus {
+    background: #3b6446;
+}
+
+.review-form.is-submitting .review-submit-btn {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.review-message {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.review-message.review-success {
+    color: #2d5a3d;
+}
+
+.review-message.review-error {
+    color: #c0392b;
+}
+
+.review-message.review-info {
+    color: #4a7c59;
+}
+
+
 
