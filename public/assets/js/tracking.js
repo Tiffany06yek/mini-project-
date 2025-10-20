@@ -260,7 +260,16 @@ async function submitReview(event) {
                 text: textValue,
             }),
         });
-        const payload = await response.json();
+        const payload = await res.json();
+        if (payload.success) {
+        const orderId = payload.orderId;
+        // 保险起见，存到 sessionStorage，防止某些场景没带到 query
+        sessionStorage.setItem('last_order_id', String(orderId));
+        // 带 query 跳转
+        window.location.replace(`/public/tracking.html?id=${encodeURIComponent(orderId)}`);
+        return;
+        }
+
         if (!response.ok || payload?.success === false) {
             throw new Error(payload?.message || 'Failed to save review.');
         }
