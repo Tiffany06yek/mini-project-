@@ -71,8 +71,8 @@ if ($mini_stmt) {
       <h1 class="hero-title">Get it fast, fresh, and local</h1>
 
       <div class="tabs">
-        <button class="tab active">Restaurants</button>
-        <button class="tab inactive">Minimarts</button>
+      <button class="tab active" type="button" data-target="restaurants-section">Restaurants</button>
+      <button class="tab inactive" type="button" data-target="minimarts-section">Minimarts</button>
       </div>
 
       <!-- 分类按钮：用 ?tag=xxx 刷新 -->
@@ -85,7 +85,7 @@ if ($mini_stmt) {
       </div>
     </div>
 
-    <div class="right-section">
+    <div class="right-section" id="restaurants-section">
       <h2 class="section-title">Nearby Restaurants</h2>
       <div class="restaurant-grid">
       <?php if (!$rows): ?>
@@ -123,7 +123,7 @@ if ($mini_stmt) {
         </div>
     </div>
 
-    <h2 class="section-title">Show Minimarts</h2>
+    <h2 class="section-title" id="minimarts-section">Show Minimarts</h2>
     <div class="minimarts-grid restaurant-grid">
       <?php if (!$minimarts): ?>
         <p>No Minimarts Found</p>

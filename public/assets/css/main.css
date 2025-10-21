@@ -159,6 +159,10 @@ header {
     color: #666;
 }
 
+.hidden {
+    display: none !important;
+}
+
 .categories {
     display: flex;
     gap: 20px;

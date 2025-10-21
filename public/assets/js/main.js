@@ -1,16 +1,5 @@
 import { Header } from "/public/assets/js/header.js";
-import { ProductCard } from "/public/assets/js/productcard.js";
-
 Header() 
-ProductCard()
-ProductCard()
-ProductCard()
-ProductCard()
-ProductCard()
-ProductCard()
-ProductCard()
-ProductCard()
-ProductCard()
 
 let db = null;
 let currentRestaurant = null;
@@ -81,26 +70,6 @@ function renderProducts(products) {
     });
 }
 
-// Create product card
-function createProductCard(product) {
-    const card = document.createElement('div');
-    card.className = 'product-card';
-    
-    card.innerHTML = `
-        <div class="product-image">
-            ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '🍽️'}
-        </div>
-        <div class="product-name">${product.name}</div>
-        <div class="product-description">${product.description}</div>
-        <div class="product-price">RM ${Number(product.price).toFixed(2)}</div>
-    `;
-    
-    card.addEventListener('click', () => {
-        window.location.href = `/public/product.html?id=${product.id}&type=restaurant&vendorId=${currentRestaurant.id}`;
-    });
-    
-    return card;
-}
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', async () => {
@@ -125,14 +94,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 // Add interactivity
-document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', function() {
-        document.querySelectorAll('.tab').forEach(t => {
+const navigationTabs = document.querySelectorAll('.tab');
+navigationTabs.forEach(tab => {
+    tab.addEventListener('click', function () {
+        navigationTabs.forEach(t => {
             t.classList.remove('active');
             t.classList.add('inactive');
         });
         this.classList.remove('inactive');
         this.classList.add('active');
+
+        const targetId = this.dataset.target;
+        if (targetId) {
+            const sectionElement = document.getElementById(targetId);
+            if (sectionElement) {
+                sectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
     });
 });
 

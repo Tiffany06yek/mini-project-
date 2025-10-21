@@ -241,7 +241,7 @@ body {
 
 .form-container {
     position: relative;
-    min-height: 350px;
+    height: 600px;
 }
 
 .auth-form {

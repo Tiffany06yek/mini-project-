@@ -13,7 +13,7 @@ export function Header() {
     const search_inp = document.createElement('button')
     // const lens = document.createElement('img')
 
-    logo_img.href = "/dashboard"
+    logo_img.href = "/public/mainpage.php"
     name.innerHTML = "XIApee"
     home_icon.href = "mainpage.php"
     cart_icon.href = "/public/cart.php"

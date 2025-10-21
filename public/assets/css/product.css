@@ -447,6 +447,14 @@ header {
 }
 
 .cart-sidebar { position: sticky; top: 20px; height: fit-content; }
+
+.cart-sidebar p {
+        color: rgb(255, 47, 47);
+        font-weight: 400;        /* 半粗体 */
+        text-align: left;      /* 居中 */
+        font-size: 12px;
+        margin-bottom: 5px;
+}
 .cart-summary-card { background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); padding: 20px; }
 .cart-summary-card h3 { color: #2d5a3d; margin-bottom: 10px; }
 .summary-line { display:flex; justify-content: space-between; padding: 6px 0; }
