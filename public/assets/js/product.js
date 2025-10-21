@@ -1,12 +1,8 @@
 import { globalCart } from '/public/assets/js/cart.js';
 import { Header } from '/public/assets/js/header.js';
 
-
-
-// API endpoint (确认路径正确)
 const API_PATH = '/public/get_product.php';
 
-// DOM elements (与你的 product.html 对应)
 const productTitle = document.getElementById('product-title');
 const productImage = document.getElementById('product-image');
 const productName = document.getElementById('product-name');
@@ -23,14 +19,14 @@ const totalPriceElement = document.getElementById('total-price');
 const addToCartBtn = document.getElementById('add-to-cart-btn');
 const buyNowBtn = document.getElementById('buy-now-btn');
 const productNotFound = document.getElementById('product-not-found');
-// Vendor info elements
+
 const vendorInfoBox = document.getElementById('vendor-info');
 const vendorNameEl = document.getElementById('vendor-name');
 const vendorCategoryEl = document.getElementById('vendor-category');
 const vendorLocationEl = document.getElementById('vendor-location');
 const vendorDescEl = document.getElementById('vendor-desc');
 const vendorLinkEl = document.getElementById('vendor-link');
-// Mini cart elements
+
 const miniItems = document.getElementById('cart-items-mini');
 const miniSubtotal = document.getElementById('mini-subtotal');
 const miniDelivery = document.getElementById('mini-delivery');
@@ -128,7 +124,6 @@ function renderProduct(product) {
 
 // Render addons and attach listeners
 function renderAddons(addons) {
-    // normalize addon id -> string to safely use in DOM ids
     addonsContainer.innerHTML = addons.map(addon => {
         const aid = addon.id ?? addon.addon_ID ?? addon.addonId ?? addon.addonIdLower ?? '';
         const price = Number(addon.price || 0).toFixed(2);
@@ -142,10 +137,7 @@ function renderAddons(addons) {
         </div>`;
     }).join('');
 
-    // reset selectedAddons
     selectedAddons = [];
-
-    // delegate change events (works for dynamically created checkboxes)
     if (!addonsContainer.dataset.bound) {
         addonsContainer.addEventListener('change', onAddonChange);
         addonsContainer.dataset.bound = '1';
@@ -156,7 +148,6 @@ function onAddonChange(e) {
     if (!e.target.classList.contains('addon-checkbox')) return;
 
     const rawId = e.target.getAttribute('data-addon-id');
-    // find addon in currentProduct.addons by loose equality to tolerate string/number
     const addon = (currentProduct.addons || []).find(a => {
         const aid = a.id ?? a.addon_ID ?? a.addonId ?? a.addonIdLower ?? '';
         return String(aid) === String(rawId);
@@ -165,7 +156,6 @@ function onAddonChange(e) {
 
     const addonOption = e.target.closest('.addon-option');
     if (e.target.checked) {
-        // avoid duplicates
         if (!selectedAddons.find(a => String(a.id ?? a.addon_ID ?? '') === String(rawId))) {
             selectedAddons.push({
                 id: addon.id ?? addon.addon_ID ?? addon.addonId ?? rawId,
@@ -182,7 +172,6 @@ function onAddonChange(e) {
     updateTotalPrice();
 }
 
-// Price calc & UI update
 function updateTotalPrice() {
     if (!currentProduct) return;
     const basePrice = Number(currentProduct.price || 0);
@@ -221,8 +210,6 @@ function handleQuantityControls() {
 }
 
 // Add to cart
-// Replace your current handleAddToCart() with this minimal binding version
-// Add to cart: 清晰、只绑定一次，并保证传 vendor 信息
 function handleAddToCart() {
     const btn = addToCartBtn || document.getElementById('add-to-cart-btn');
     if (!btn) {
@@ -241,7 +228,6 @@ function handleAddToCart() {
 
       const vendorInfo = resolveVendorInfo();
   
-      // 构造传给 cart 的 product 对象（保持和 cart.addItem 期望字段一致）
       const productForCart = {
         id: currentProduct.product_id ?? currentProduct.id ?? currentProduct.productId,
         productId: currentProduct.product_id ?? currentProduct.id ?? currentProduct.productId,
@@ -253,8 +239,7 @@ function handleAddToCart() {
         vendorType: vendorInfo.vendorType,
         vendorName: vendorInfo.vendorName,
         vendorLocation: vendorInfo.vendorLocation};
-  
-      // add quantity in one call (cart.addItem handles qty argument)
+
       const qty = Number(quantity || 1);
       globalCart.addItem(productForCart, selectedAddons.slice(), vendorInfo, qty);
   
@@ -331,7 +316,6 @@ function renderMiniCart() {
     }
 
     miniItems.innerHTML = items.map(it => {
-        // 处理 addon 信息
         let addonHtml = '';
         if (it.addons && it.addons.length > 0) {
             addonHtml = `
@@ -409,7 +393,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             };
         });
 
-        // vendor (optional)
         if (data.vendor) {
             currentVendor = {
                 vendorType: data.vendor.vendorType ?? data.vendor.type ?? '',
@@ -429,8 +412,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 description: p.description ?? ''
             };currentVendor = null;
         }
-
-        // render UI
         renderProduct(p);
         renderVendorInfo();
         handleQuantityControls();
@@ -443,17 +424,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.querySelector('.product-content').style.display = 'none';
     }
 
-        // 保证在 DOMContentLoaded 内并且 cart.js 已加载后运行
-    // 1) 同页监听（直接用 globalCart 的 listener）
     globalCart.addListener(renderMiniCart);
 
-    // 2) 监听自定义事件（当 saveToStorage dispatch xiapee.cart.updated 时也能收到）——双保险
     window.addEventListener('xiapee.cart.updated', (e) => {
-    // 如果你想直接用后端传来的内容，可用: const items = e.detail;
     renderMiniCart();
     });
-
-    // 3) 跨 tab/窗口（localStorage 的 storage 事件）在 cart.js 已经处理并更新 Map，因此直接初始渲染就好
     renderMiniCart();
 
 });

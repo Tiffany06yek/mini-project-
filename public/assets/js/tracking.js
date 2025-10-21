@@ -1,4 +1,3 @@
-
 let db = null;
 let currentUser = null;
 let order = null;
@@ -307,7 +306,6 @@ function updateReviewSection(stageIndex) {
         loadReviewSummary(order.merchantId);
     }
 }
-
 
 function render() {
     if (!order) return;

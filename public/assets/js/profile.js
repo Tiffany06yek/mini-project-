@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     loadWalletData();
     loadTransactions();
     loadPaymentMethods();
-    // Live updates from tracking page: poll override DB
+
     setInterval(async () => {
         const dbLive = getEffectiveDB();
         const liveUser = (dbLive?.users && dbLive.users[0]) || dbLive?.currentUser;
@@ -382,15 +382,13 @@ function initializeProfile() {
 
 // Tab switching functionality
 function showTab(tabName) {
-    // Remove active class from all tabs and panels
     document.querySelectorAll('.nav-tab').forEach(tab => {
         tab.classList.remove('active');
     });
     document.querySelectorAll('.tab-panel').forEach(panel => {
         panel.classList.remove('active');
     });
-    
-    // Add active class to selected tab and panel
+
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
     document.getElementById(`${tabName}-panel`).classList.add('active');
     
@@ -795,19 +793,16 @@ function loadWalletData() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    // 1️⃣ 如果用 hash，比如 /profile.html#wallet
     if (window.location.hash === "#wallet") {
       showTab("wallet");
     }
-  
-    // 2️⃣ 如果用 query，比如 /profile.html?panel=wallet
+
     const params = new URLSearchParams(window.location.search);
     if (params.get("panel") === "wallet") {
       showTab("wallet");
     }
   });
 
-// Update wallet balance manually
 async function updateWalletBalance() {
     const balanceInput = document.getElementById('currentBalanceDisplay');
     const newBalance = parseFloat(balanceInput.value.replace('RM ', ''));
@@ -817,7 +812,6 @@ async function updateWalletBalance() {
         return;
     }
     
-    // Update local data
     sampleData.user.walletBalance = newBalance;
     
     // Update database
@@ -838,11 +832,9 @@ async function updateDatabaseBalance(newBalance) {
         if (db.users && db.users.length > 0) {
             db.users[0].balance = newBalance;
         }
-        
-        // Store in localStorage for persistence (since we can't write to file directly)
+
         localStorage.setItem('xiapee_db_override', JSON.stringify(db));
         
-        // Update global balance display
         updateGlobalBalanceDisplay(newBalance);
         
     } catch (error) {
@@ -851,9 +843,7 @@ async function updateDatabaseBalance(newBalance) {
     }
 }
 
-// Update global balance display across all pages
 function updateGlobalBalanceDisplay(newBalance) {
-    // Update any wallet balance displays on the current page
     const balanceElements = document.querySelectorAll('[id*="balance"], [id*="Balance"]');
     balanceElements.forEach(element => {
         if (element.textContent.includes('RM')) {
@@ -861,7 +851,6 @@ function updateGlobalBalanceDisplay(newBalance) {
         }
     });
     
-    // Dispatch custom event for other pages to listen to
     window.dispatchEvent(new CustomEvent('balanceUpdated', { 
         detail: { newBalance } 
     }));
@@ -997,8 +986,7 @@ function selectAmount(amount) {
     document.querySelectorAll('.amount-btn').forEach(btn => {
         btn.classList.remove('selected');
     });
-    
-    // Add selected class to clicked button
+
     event.target.classList.add('selected');
     
     // Set custom amount input
