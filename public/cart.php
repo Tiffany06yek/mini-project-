@@ -1,18 +1,13 @@
 <?php
-// public/cart.php
-// 兼容多种 session/cart 存储格式并避免 "Undefined array key" 警告
 session_start();
 
-// 取 session 中的 cart（可能为空、可能不是期望结构）
 $rawCart = $_SESSION['cart'] ?? [];
 
 function normalize_cart_item($it) {
-    // 如果 item 是数组且有 numeric index 1 且 index 1 为数组，说明是 [key, value] 形式
     if (is_array($it) && array_key_exists(1, $it) && is_array($it[1])) {
         $it = $it[1];
     }
 
-    // 如果还是非数组，返回默认空项
     if (!is_array($it)) {
         return [
             'id' => null,
@@ -25,11 +20,10 @@ function normalize_cart_item($it) {
         ];
     }
 
-    // 取值并设置默认
     $price = 0.0;
     if (array_key_exists('price', $it)) {
         $price = floatval($it['price']);
-    } elseif (array_key_exists('price_total', $it)) { // 备用字段名
+    } elseif (array_key_exists('price_total', $it)) { 
         $price = floatval($it['price_total']);
     }
 
@@ -57,7 +51,6 @@ function normalize_cart_item($it) {
     ];
 }
 
-// 逐项归一化并计算小计与 vendor 去重
 $subtotal = 0.0;
 $vendors = [];
 
@@ -65,7 +58,6 @@ if (is_array($rawCart)) {
     foreach ($rawCart as $rawIt) {
         $it = normalize_cart_item($rawIt);
 
-        // 跳过 qty 为 0 的项（没有商品就不计）
         if (empty($it['qty'])) continue;
 
         $subtotal += floatval($it['price']) * intval($it['qty']);
@@ -76,7 +68,6 @@ if (is_array($rawCart)) {
     }
 }
 
-// 计算运费：示例为每个商家 RM2.00（可按需修改）
 $vendorCount = count($vendors);
 $deliveryFeePerVendor = 2.00;
 $deliveryFee = $vendorCount * $deliveryFeePerVendor;
@@ -147,15 +138,12 @@ $total = $subtotal + $deliveryFee;
   <script type="module">
     import { createCart, globalCart } from '/public/assets/js/cart.js';
 
-    // render widget into container
     const widget = createCart('#cart-items-container');
 
-    // Optional: listen for custom events (debug)
     window.addEventListener('xiapee.cart.updated', (e) => {
       console.log('cart updated on cart.php', e.detail);
     });
 
-    // Optionally re-render (should be automatic)
     widget && widget.render && widget.render();
   </script>
 </body>

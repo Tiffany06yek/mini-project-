@@ -19,7 +19,6 @@ if ($orderIdRaw === '') {
 
 require __DIR__ . '/../backend/database.php';
 
-/** Return the first column in $candidates that exists in $table. */
 function xiapee_pick_column(mysqli $conn, string $table, array $candidates): ?string {
     static $cache = [];
     $tableKey = strtolower($table);
@@ -173,7 +172,7 @@ try {
         'o.payment_status',
         'o.created_at',
     ];
-    // 把自定义外显单号（如 order_id）映射为别名
+
     if ($customIdColumn) {
         $orderColumns[] = sprintf('o.`%s` AS order_id', $customIdColumn);
     } else {
@@ -188,7 +187,6 @@ try {
         . 'LEFT JOIN users u ON u.id = o.buyer_id '
         . 'LEFT JOIN merchants m ON m.id = o.merchant_id ';
 
-    // 1) 先按内部自增 id 查
     if ($orderIdNumeric !== null) {
         $stmt = $conn->prepare($orderSelectSql . 'WHERE o.id = ? LIMIT 1');
         if ($stmt) {
@@ -203,7 +201,6 @@ try {
         }
     }
 
-    // 2) 如果没找到且有外显列（如 order_id），再按外显单号查
     if (!$orderRow && $customIdColumn) {
         $stmt = $conn->prepare($orderSelectSql . sprintf('WHERE o.`%s` = ? LIMIT 1', $customIdColumn));
         if ($stmt) {
@@ -224,7 +221,6 @@ try {
         $productIdColumn    = xiapee_pick_column($conn, 'products', ['product_id', 'id']);
         $productNameColumn  = xiapee_pick_column($conn, 'products', ['name']);
 
-        // 取 items
         $items = [];
         if ($resolvedOrderId !== null) {
             if ($productIdColumn && $productNameColumn) {
@@ -265,7 +261,6 @@ try {
             }
         }
 
-        // 状态流
         $history = $resolvedOrderId !== null ? xiapee_fetch_status_history($conn, $resolvedOrderId) : [];
         $statusMap   = ['placed'=>'Placed Order','accepted'=>'Order Accepted','preparing'=>'Preparing','on_the_way'=>'On The Way','delivered'=>'Delivered','cancelled'=>'Cancelled'];
         $defaultFlow = ['placed','accepted','preparing','on_the_way','delivered'];
@@ -286,14 +281,12 @@ try {
         foreach ($defaultFlow as $idx => $key) {
             $statusSteps[] = ['key'=>$key, 'title'=>$statusMap[$key], 'done'=>$idx <= $activeIndex];
         }
-
-        // 骑手信息（按商家一对一）
+// courier fetch from db
         $courier = xiapee_fetch_courier($conn, isset($orderRow['merchant_id']) ? (int)$orderRow['merchant_id'] : null);
         if (!$courier) {
             $courier = ['courier_id'=>null,'merchant_id'=>$orderRow['merchant_id'] ?? null,'name'=>'Assigned Courier','phone'=>'','hire_date'=>null];
         }
 
-        // 时间
         $createdAt = $orderRow['created_at'] ?? null;
         try {
             $timestamp = $createdAt ? new DateTime($createdAt) : null;
@@ -302,7 +295,6 @@ try {
             $timestampString = date(DATE_ATOM);
         }
 
-        // 输出对象
         $responseOrder = [
             'id'            => (isset($orderRow['order_id']) && $orderRow['order_id'] !== '') ? $orderRow['order_id'] : (int)$orderRow['id'],
             'orderNumber'   => isset($orderRow['id']) ? (int)$orderRow['id'] : null,
@@ -325,7 +317,6 @@ try {
             'courier'       => $courier,
         ];
     } elseif ($sessionOrder) {
-        // session 兜底
         $responseOrder = xiapee_normalise_session_order($sessionOrder);
     }
 
@@ -335,7 +326,6 @@ try {
         exit;
     }
 
-    // 若 session 订单缺骑手，这里再补一遍
     if ($responseOrder['courier'] === null) {
         $merchantId = isset($responseOrder['merchantId']) ? (int)$responseOrder['merchantId'] : null;
         $courier = xiapee_fetch_courier($conn, $merchantId);

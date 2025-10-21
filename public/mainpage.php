@@ -1,5 +1,5 @@
 <?php
-require __DIR__ . '/../backend/database.php'; // 假设此处會建立 $conn (mysqli)
+require __DIR__ . '/../backend/database.php'; 
 
 $tag = $_GET['tag'] ?? 'all';
 $allow = ['all','Asian','Western','Chinese','Halal','Drinks'];
@@ -8,13 +8,12 @@ if (!in_array($tag, $allow, true)) {
     $tag = 'all';
 }
 
-// 基本 SQL（固定只取 type = 'restaurant'）
 $sql = "SELECT id AS res_id, image_url, name, `type` AS merchant_type, tags, location, open_hours, delivery_fee, eta, rating
         FROM merchants
         WHERE `type` = 'restaurant'";
 
 $params = [];
-// 若選擇特定 tag，加入條件並準備綁定
+
 if ($tag !== 'all') {
     $sql .= " AND FIND_IN_SET(?, tags)";
     $params[] = $tag;
@@ -24,12 +23,10 @@ $sql .= " ORDER BY rating DESC, name ASC";
 
 $stmt = mysqli_prepare($conn, $sql);
 if ($stmt === false) {
-    // 開發時可打 log 或顯示錯誤（production 不建議顯示詳細錯誤）
     error_log("Prepare failed: " . mysqli_error($conn));
     $rows = [];
 } else {
     if ($params) {
-        // 只有一個 param（tag），所以直接 bind
         mysqli_stmt_bind_param($stmt, 's', $params[0]);
     }
     mysqli_stmt_execute($stmt);
@@ -38,7 +35,6 @@ if ($stmt === false) {
     mysqli_stmt_close($stmt);
 }
 
-// Minimarts：只要 type = 'grocery'
 $mini_sql = "SELECT id AS mart_id, image_url, `type`, name, location, rating
              FROM merchants
              WHERE `type` = 'grocery'
@@ -75,7 +71,6 @@ if ($mini_stmt) {
       <button class="tab inactive" type="button" data-target="minimarts-section">Minimarts</button>
       </div>
 
-      <!-- 分类按钮：用 ?tag=xxx 刷新 -->
       <div class="categories" id="cats">
         <a href="?tag=all"     class="category<?= $tag==='all'?' active':''?>">All</a>
         <a href="?tag=Asian"   class="category<?= $tag==='Asian'?' active':''?>">Asian</a>
@@ -152,8 +147,7 @@ if ($mini_stmt) {
       <?php endforeach; endif; ?>
     </div>
   </div>
-
-    <!-- 统一以模块方式加载入口文件（main.js 会负责 import 其它模块） -->
+  
     <script type="module" src="/public/assets/js/main.js"></script>
 
 </body>

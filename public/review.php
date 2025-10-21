@@ -79,7 +79,6 @@ function xiapee_fetch_review_summary(mysqli $conn, int $merchantId, int $userId 
             $stmt->close();
         }
     } catch (mysqli_sql_exception $e) {
-        // Ignore summary errors for resilience.
     }
 
     $userReview = null;
@@ -105,7 +104,6 @@ function xiapee_fetch_review_summary(mysqli $conn, int $merchantId, int $userId 
                 $stmt->close();
             }
         } catch (mysqli_sql_exception $e) {
-            // Ignore user review fetch errors.
         }
     }
 
@@ -150,7 +148,7 @@ if ($method === 'POST') {
         echo json_encode(['success' => false, 'message' => 'Rating must be between 1 and 5.']);
         exit;
     }
-    $rating = round($rating * 2) / 2; // clamp to 0.5 steps
+    $rating = round($rating * 2) / 2; 
 
     try {
         $conn->begin_transaction();

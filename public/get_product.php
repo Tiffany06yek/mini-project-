@@ -9,8 +9,7 @@ if (!isset($_GET['id'])) {
 }
 
 $id = intval($_GET['id']);
-
-// 1️⃣ 查询产品
+//search product
 $sql_product = "SELECT * FROM products WHERE product_id = ?";
 $stmt = $conn->prepare($sql_product);
 $stmt->bind_param("i", $id);
@@ -49,7 +48,7 @@ if (!empty($product['merchant_id'])) {
     }
 }
 
-// 3️⃣ 查询该产品的所有 addon
+//find addons
 $sql_addons = "SELECT addon_ID, name, price FROM product_addons WHERE product_id = ?";
 $stmt_addon = $conn->prepare($sql_addons);
 $stmt_addon->bind_param("i", $id);
@@ -61,7 +60,6 @@ while ($row = $res_addons->fetch_assoc()) {
     $addons[] = $row;
 }
 
-// 3️⃣ 返回 JSON
 echo json_encode([
     'success' => true,
     'product' => $product,

@@ -5,7 +5,6 @@ require __DIR__ . '/../backend/database.php';
 if (isset($_GET['id'])) {
     $id = intval($_GET['id']);
 
-    // 用 $conn 而不是 $pdo
     $stmt = $conn->prepare("SELECT * FROM merchants WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
@@ -13,7 +12,6 @@ if (isset($_GET['id'])) {
     $restaurant = $result->fetch_assoc();
 
     if ($restaurant) {
-        // 再查菜单
         $stmt2 = $conn->prepare("SELECT * FROM products WHERE merchant_id = ?");
         $stmt2->bind_param("i", $id);
         $stmt2->execute();

@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const res = await fetch('../backend/signin.php', {
               method: 'POST',
               body: new FormData(form),
-              headers: { 'X-Requested-With': 'fetch' } // 让后端识别是AJAX
+              headers: { 'X-Requested-With': 'fetch' } 
             });
             const data = await res.json().catch(() => ({}));
       
@@ -95,12 +95,11 @@ document.addEventListener('DOMContentLoaded', function() {
           } catch (err) {
             alert('Network Error.');
           } finally {
-            // ✅ 延迟恢复按钮（比如 2 秒）
             setTimeout(() => {
               btn.disabled = false;
               btn.textContent = oldText;
               btn.style.opacity = '';
-            }, 1500); // 想要多久就改这里（毫秒）
+            }, 1500); 
           }
         });
       
@@ -144,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    const read = new URLSearchParams(location.search);//可以用 p.get('registered')、p.get('err') 取值。
+    const read = new URLSearchParams(location.search);
     const box = document.getElementById('msg');
     let text = '';
     let isError = false;
@@ -175,7 +174,6 @@ document.addEventListener('DOMContentLoaded', function() {
         box.textContent = text;
         box.style.display = 'block';
         box.className = 'alert ' + (isError ? 'alert-error' : 'alert-success');
-        // 清理地址栏参数
         history.replaceState(null, '', location.pathname);
       }
 

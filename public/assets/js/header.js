@@ -11,7 +11,6 @@ export function Header() {
     const money_icon = document.createElement('a')
     const profile = document.createElement('a')
     const search_inp = document.createElement('button')
-    // const lens = document.createElement('img')
 
     logo_img.href = "/public/mainpage.php"
     name.innerHTML = "XIApee"
@@ -23,7 +22,7 @@ export function Header() {
     search_inp.placeholder = "Search product here"
     search_inp.type = "text"
     search_inp.innerHTML = "Log out"
-    // lens.src = "/public/icons/lens_icon.svg"
+
     logo_img.style.backgroundImage = `url(../public/assets/img/image.png)`
     home_icon.style.backgroundImage = `url(../public/assets/img/home_icon.png)`
     cart_icon.style.backgroundImage = `url(../public/assets/img/cart_icon.png)`
@@ -42,7 +41,7 @@ export function Header() {
     money_icon.classList.add('money_icon')
     profile.classList.add('profile')
     search_inp.classList.add('search_inp')
-    // lens.classList.add('lens')
+
     home_icon.classList.add('icon')
     cart_icon.classList.add('icon')
     tracking_icon.classList.add('icon')
@@ -58,7 +57,6 @@ export function Header() {
     header.append(header_cont)
 
     search_inp.addEventListener('click', () => {
-        // 然后跳去 login page
         window.location.href = "/public/login.html"
       })
     

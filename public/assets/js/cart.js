@@ -2,7 +2,7 @@ import { Header } from "/public/assets/js/header.js";
 Header()
 
 const STORAGE_KEY = 'xiapee_cart';
-const API_PATH = '/public/cart_api.php'; // optional backend endpoint
+const API_PATH = '/public/cart_api.php';
 
 // Helpers
 function debounce(fn, wait = 300) {
@@ -46,14 +46,9 @@ class CartManager {
       if (raw) {
         const arr = JSON.parse(raw);
 
-        // 支持两种格式：
-        // 1) 新格式：arr 是 [{...},{...}] （values）
-        // 2) 旧格式：arr 是 [[key,value],[key,value]] （entries）
         if (Array.isArray(arr) && arr.length > 0 && Array.isArray(arr[0]) && arr[0].length === 2) {
-          // entries format -> convert to Map directly
           this.items = new Map(arr);
         } else if (Array.isArray(arr)) {
-          // values format -> recreate a Map using item.id as key (fallback 随机生成 id)
           this.items = new Map(arr.map(it => {
             const key = it && it.id ? it.id : (it && it.productId ? `${it.productId}@${it.vendorId||''}` : Math.random().toString(36).slice(2));
             return [key, it];
@@ -72,7 +67,6 @@ class CartManager {
 
   saveToStorage() {
     try {
-      // 存为 values（array of item objects），便于其它代码直接读取 value
       const arr = Array.from(this.items.values());
       localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
       this.notifyListeners();
@@ -105,7 +99,6 @@ class CartManager {
     return Array.from(this.items.values());
   }
 
-  // 商品小计（不含运费）
   getTotal() {
     let total = 0;
     this.items.forEach(it => {
@@ -172,7 +165,6 @@ class CartManager {
         addons: (addons || []).map(a => ({ id: a.id ?? a.addon_ID ?? '', name: a.name || '', price: Number(a.price || 0) })),
         icon: product.icon || product.image_url || null,
         category: product.category || '',
-        // 兼容多种来源字段（优先 vendorInfo，再看 product 的多种命名）
         vendorId: resolvedVendorId,
         vendorName: resolvedVendorName,
         vendorType: resolvedVendorType,
@@ -187,7 +179,6 @@ class CartManager {
   
   getCartSummary() {
     const items = this.getItems() || [];
-    // 确保 items 是数组（防止 null/undefined）
     if (!Array.isArray(items)) {
       console.warn('getCartSummary: items is not an array', items);
       return {
@@ -200,13 +191,12 @@ class CartManager {
   
     const subtotal = Number(this.getTotal() || 0);
   
-    // 统计不同餐厅（支持多种字段名）
     const uniqueVendors = new Set();
     items.forEach(it => {
       const vendor_id = it.vendorId ?? it.vendor_id ?? it.restaurant_id ?? it.restaurantId ?? null;
       const type = it.vendorType ?? it.vendor_type ?? 'vendor';
       if (vendor_id !== undefined && vendor_id !== null && vendor_id !== '') {
-        uniqueVendors.add(`${String(type)}:${String(vendor_id)}`); // 修正：用 vendor_id，不是 id
+        uniqueVendors.add(`${String(type)}:${String(vendor_id)}`);
       }
     });
   
@@ -251,7 +241,6 @@ class CartManager {
   }
 }
 
-// singleton
 export const globalCart = new CartManager();
 
 export function createCart(containerSelector, options = {}) {
@@ -267,7 +256,6 @@ export function createCart(containerSelector, options = {}) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  // 更新页面上独立 summary 元素（如果存在）
   function updateExternalSummary(summary) {
     try {
       const subtotalEl = document.getElementById('subtotal');
@@ -334,11 +322,9 @@ export function createCart(containerSelector, options = {}) {
       </div>
     `;
 
-    // 同步更新外部 summary（如果页面有这些元素）
     updateExternalSummary(summary);
   }
 
-  // initial render
   render(globalCart.getItems());
 
   // register listener
@@ -370,10 +356,6 @@ export function createCart(containerSelector, options = {}) {
     }
   });
 
-  // === 外部（页面其他位置）Order Summary 按钮绑定（#clear-cart-btn, #checkout-btn）===
-  // 例如你的模板可能有：
-  // <button id="clear-cart-btn">Clear Cart</button>
-  // <button id="checkout-btn">Checkout</button>
   function bindExternalButtons() {
     const extClear = document.getElementById('clear-cart-btn');
     if (extClear) {
@@ -395,8 +377,6 @@ export function createCart(containerSelector, options = {}) {
       });
     }
   }
-
-  // immediately bind external buttons (safe if elements exist; if not, no-op)
   bindExternalButtons();
 
   return {

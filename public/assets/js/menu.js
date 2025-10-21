@@ -1,6 +1,5 @@
 import { Header } from '/public/assets/js/header.js';
 
-// Initialize header
 Header();
 
 const PUBLIC_BASE = (() => {
@@ -14,7 +13,6 @@ const PUBLIC_BASE = (() => {
 })();
 const API_PATH = `${PUBLIC_BASE}/get_restaurant.php`; // 
 
-// DOM elements
 const restaurantTitle = document.getElementById('restaurant-title');
 const restaurantImage = document.getElementById('restaurant-image');
 const restaurantName = document.getElementById('restaurant-name');
@@ -51,9 +49,7 @@ async function fetchRestaurant(id) {
     });
     console.log('API status', res.status);
 
-    // If backend returned non-JSON HTML error page, try to catch nicely
     if (!res.ok) {
-      // try to parse body as json to show message, otherwise throw
       let errBody;
       try { errBody = await res.json(); } catch(e) { errBody = null; }
       throw errBody && errBody.error ? new Error(errBody.error) : new Error(`API returned status ${res.status}`);
@@ -85,7 +81,6 @@ function clearNotFound() {
 function renderRestaurant(restaurant, products) {
   clearNotFound();
 
-  // normalize keys: some APIs return image_url, some 'image'
   const rImage = restaurant.image ?? restaurant.image_url ?? null;
   const rName = restaurant.name ?? 'Restaurant';
   const rTags = restaurant.tags ?? "None";
@@ -97,7 +92,6 @@ function renderRestaurant(restaurant, products) {
   restaurantLocation.textContent = restaurant.location ?? '';
   restaurantDescription.textContent = restaurant.description ?? '';
 
-  // image: set via DOM API to avoid injecting raw HTML
   restaurantImage.innerHTML = ''; // clear
   if (rImage) {
     const img = document.createElement('img');
@@ -113,7 +107,7 @@ function renderRestaurant(restaurant, products) {
 }
 
 function renderProducts(products) {
-  productsGrid.innerHTML = ''; // clear
+  productsGrid.innerHTML = ''; 
 
   if (!products || products.length === 0) {
     const p = document.createElement('p');
@@ -166,9 +160,7 @@ function renderProducts(products) {
     priceEl.textContent = `RM ${price.toFixed(2)}`;
     card.appendChild(priceEl);
 
-    // click behavior (preserve your original jump)
     card.addEventListener('click', () => {
-      // vendorId use restaurant.id if available; otherwise pass empty
       const vendorId = encodeURIComponent(product.vendorId ?? product.merchant_id ?? product.merchantId ?? (document.location.search ? new URLSearchParams(document.location.search).get('id') : ''));
       const pidEnc = encodeURIComponent(pid);
       window.location.href = `/public/product.html?id=${pidEnc}&type=restaurant&vendorId=${vendorId}`;
@@ -189,8 +181,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   try {
     const data = await fetchRestaurant(id);
-    // handle both shapes: { restaurant, products } or combined json
-    const restaurant = data.restaurant ?? data.restautant ?? data; // tolerant with misspelling
+    const restaurant = data.restaurant ?? data.restautant ?? data;
     const products = data.products ?? [];
 
     if (!restaurant || Object.keys(restaurant).length === 0) {

@@ -127,9 +127,7 @@ function xiapee_resolve_product_id(mysqli $conn, array $item): ?int {
     return $pid;
 }
 
-/**
- * 按“一商家一骑手”取骑手
- */
+//fetch courier from merchants (one to one)
 function xiapee_fetch_courier(mysqli $conn, ?int $merchantId): ?array {
     if (!$merchantId) return null;
     $stmt = $conn->prepare('SELECT courier_id, merchant_id, name, phone, hire_date FROM couriers WHERE merchant_id = ? ORDER BY hire_date DESC, courier_id ASC LIMIT 1');
@@ -169,13 +167,12 @@ try {
         }
     }
 
-    // 可选外显单号（如 ORD-xxx）
+    //order_id
     $customOrderId  = null;
     if (!empty($data['id'])) $customOrderId = substr(trim((string)$data['id']), 0, 64);
     $supportsCustom = xiapee_orders_supports_custom_order_id($conn);
     if (!$supportsCustom) $customOrderId = null;
 
-    // 统一用小写表名 `orders`
     if ($supportsCustom && $customOrderId !== null) {
         $orderStmt = $conn->prepare(
             'INSERT INTO `orders` (order_id, buyer_id, merchant_id, address, notes, delivery_fee, subtotal, total, payment_method, payment_status)
@@ -201,7 +198,7 @@ try {
     $orderId = (int)$conn->insert_id;
     $orderStmt->close();
 
-    // 插 items
+    //insert items
     $itemStmt = $conn->prepare('INSERT INTO order_items (order_id, product_id, qty, unit_price) VALUES (?, ?, ?, ?)');
     if (!$itemStmt) throw new RuntimeException('Save failed. Please try again later.');
     $addonStmt = xiapee_prepare_optional($conn, 'INSERT INTO order_item_addons (order_item_id, addon_id, price) VALUES (?, ?, ?)');
@@ -302,7 +299,6 @@ try {
         }
     }
 
-    // 骑手
     $courier = xiapee_fetch_courier($conn, $merchantId) ?: [
         'courier_id'  => null,
         'merchant_id' => $merchantId,
@@ -313,7 +309,6 @@ try {
 
     $conn->commit();
 
-    // 记录到 session（给 tracking 兜底用）
     if (!isset($_SESSION['placed_orders']) || !is_array($_SESSION['placed_orders'])) {
         $_SESSION['placed_orders'] = [];
     }

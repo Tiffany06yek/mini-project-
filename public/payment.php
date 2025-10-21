@@ -28,7 +28,7 @@ if (!is_array($items) || count($items) === 0) {
     exit;
 }
 
-require_once __DIR__ . '/../backend/config.php'; // 用正式配置
+require_once __DIR__ . '/../backend/config.php'; 
 if (file_exists(__DIR__ . '/../backend/config.local.php')) {
     require_once __DIR__ . '/../backend/config.local.php';
 }
@@ -43,7 +43,6 @@ try {
     exit;
 }
 
-// ---- 业务字段 ----
 $address        = trim((string)($payload['dropOff'] ?? ''));
 $notes          = trim((string)($payload['notes'] ?? ''));
 $customerName   = trim((string)($payload['customerName'] ?? ''));
@@ -60,7 +59,7 @@ $paymentMethod = 'wallet';
 $paymentStatus = 'paid';
 $orderStatus   = (string)($payload['orderStatus'] ?? 'placed');
 
-// 只允许同一商家
+//can only choose one merchants
 $merchantIds = [];
 foreach ($items as $it) {
     if (isset($it['vendorId']) && (int)$it['vendorId'] > 0) {
@@ -79,9 +78,7 @@ $merchantId = $merchantIds[0];
 try {
     $conn->begin_transaction();
 
-    // 1) 扣款：余额足够才扣
     $stmt = $conn->prepare('UPDATE users SET balance = balance - ? WHERE id = ? AND balance >= ?');
-    // 金额(double), 用户(int), 金额(double)
     $stmt->bind_param('did', $total, $userId, $total);
     $stmt->execute();
     if ($stmt->affected_rows !== 1) {
@@ -89,7 +86,7 @@ try {
     }
     $stmt->close();
 
-    // 2) 创建订单
+    //create order in database
     $orderStmt = $conn->prepare(
         'INSERT INTO orders (buyer_id, merchant_id, address, notes, delivery_fee, subtotal, total, payment_method, payment_status)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
@@ -110,7 +107,7 @@ try {
     $orderId = (int)$conn->insert_id;
     $orderStmt->close();
 
-    // 3) 订单项 + 加料
+ //order_addons
     $itemStmt  = $conn->prepare('INSERT INTO order_items (order_id, product_id, qty, unit_price) VALUES (?, ?, ?, ?)');
     $addonStmt = $conn->prepare('INSERT INTO order_item_addons (order_item_id, addon_id, price) VALUES (?, ?, ?)');
 
@@ -123,7 +120,7 @@ try {
             throw new RuntimeException('Invalid order item payload.');
         }
 
-        // 计算基础单价 = 显示单价 - 加料合计（若你前端 price 已含加料）
+        //calculate Subtotal
         $addonTotal = 0.0;
         if (!empty($item['addons']) && is_array($item['addons'])) {
             foreach ($item['addons'] as $ad) {
@@ -131,7 +128,7 @@ try {
             }
         }
         $baseUnitPrice = $pricePerUnit - $addonTotal;
-        if ($baseUnitPrice < 0) { // 容错
+        if ($baseUnitPrice < 0) {
             $baseUnitPrice = $pricePerUnit;
         }
 
@@ -186,7 +183,7 @@ try {
         }
     }
 
-    // 5) 订单状态历史（两个可能的表名里挑一个能插入的）
+    //status of order history
     $statusHistoryId = null; $statusInserted = false;
     foreach (['order_status_history', 'Order_Status_History'] as $statusTable) {
         try {
@@ -208,28 +205,6 @@ try {
             }
         } catch (Throwable $ignore) {}
     }
-
-    // 6) 查最新余额（可选）
-    $get = $conn->prepare('SELECT balance FROM users WHERE id = ?');
-    $get->bind_param('i', $userId);
-    $get->execute();
-    $gr = $get->get_result();
-    $newBalance = ($row = $gr->fetch_assoc()) ? (float)$row['balance'] : null;
-    $gr->free();
-    $get->close();
-
-    $conn->commit();
-
-    echo json_encode([
-        'success' => true,
-        'message' => 'Order created successfully.',
-        'orderId' => $orderId,
-        'paymentId' => $paymentId,
-        'statusHistoryId' => $statusHistoryId,
-        'statusHistoryInserted' => $statusInserted,
-        'walletBalance' => $newBalance
-    ]);
-    exit;
 
 } catch (Throwable $e) {
     try { $conn->rollback(); } catch (Throwable $ignore) {}
