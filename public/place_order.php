@@ -29,6 +29,7 @@ if ($dropOff === '') {
     echo json_encode(['success' => false, 'message' => 'Please fill in the drop-off location.']);
     exit;
 }
+
 $subtotal    = isset($data['subtotal'])    ? (float)$data['subtotal']    : 0.0;
 $deliveryFee = isset($data['deliveryFee']) ? (float)$data['deliveryFee'] : 0.0;
 $total       = isset($data['total'])       ? (float)$data['total']       : ($subtotal + $deliveryFee);
@@ -66,9 +67,11 @@ function xiapee_normalise_addons(array $item): array {
     return $addons;
 }
 
-function xiapee_parse_int($value): ?int {
-    if (is_int($value)) return $value;
-    if (is_float($value)) return (int)$value;
+function xiapee_parse_int($value): ?int {//convert all the types into integer safely
+    if (is_int($value)) 
+    return $value;
+    if (is_float($value)) 
+    return (int)$value;
     if (is_string($value)) {
         if (ctype_digit($value)) return (int)$value;
         if (preg_match('/-?\d+/', $value, $m)) return (int)$m[0];
@@ -144,7 +147,7 @@ function xiapee_fetch_courier(mysqli $conn, ?int $merchantId): ?array {
 try {
     $conn->begin_transaction();
 
-    $buyerId    = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0; // 没登录就 0，按你需求调整
+    $buyerId    = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0; 
     $merchantId = xiapee_resolve_merchant_id($conn, $data['merchantId'] ?? null, $items);
 
     $notes          = trim((string)($data['notes'] ?? ''));
@@ -162,7 +165,7 @@ try {
                     return 'failed';
                 case 'pending':
                 default:
-                    return 'pending';
+                    return 'success';
             }
         }
     }
@@ -288,7 +291,7 @@ try {
             }
             $statusStmt = $conn->prepare(sprintf('INSERT INTO `%s` (id, order_id, status) VALUES (?, ?, ?)', $statusTable));
             if ($statusStmt) {
-                $status = isset($data['orderStatus']) ? (string)$data['orderStatus'] : 'placed';
+                $status = isset($data['orderStatus']) ? (string)$data['orderStatus'] : 'delivered';
                 $statusStmt->bind_param('iis', $statusHistoryId, $orderId, $status);
                 $statusStmt->execute();
                 $statusStmt->close();

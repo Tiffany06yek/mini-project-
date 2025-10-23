@@ -1,4 +1,5 @@
 <?php
+//A GET API that returns one order as JSON.
 declare(strict_types=1);
 
 session_start();
@@ -19,6 +20,8 @@ if ($orderIdRaw === '') {
 
 require __DIR__ . '/../backend/database.php';
 
+//Helper functions below
+//Looks up the table’s columns (SHOW COLUMNS) and returns the first candidate that exists,
 function xiapee_pick_column(mysqli $conn, string $table, array $candidates): ?string {
     static $cache = [];
     $tableKey = strtolower($table);
@@ -41,6 +44,7 @@ function xiapee_pick_column(mysqli $conn, string $table, array $candidates): ?st
     return null;
 }
 
+//Scans the session and matches by order_id to find a session copy
 function xiapee_fetch_session_order(string $orderId): ?array {
     $orders = isset($_SESSION['placed_orders']) && is_array($_SESSION['placed_orders'])
         ? $_SESSION['placed_orders'] : [];
@@ -105,7 +109,7 @@ function xiapee_normalise_session_order(array $raw): array {
 }
 
 function xiapee_fetch_status_history(mysqli $conn, int $orderId): array {
-    foreach (['order_status_history', 'Order_Status_History'] as $table) {
+    foreach (['Order_Status_History'] as $table) {
         try {
             $stmt = $conn->prepare(sprintf('SELECT status, changed_at FROM `%s` WHERE order_id = ? ORDER BY changed_at ASC, id ASC', $table));
             if (!$stmt) continue;
@@ -156,7 +160,7 @@ $sessionOrder  = xiapee_fetch_session_order($orderIdRaw);
 
 try {
     $orderRow = null;
-    $orderIdNumeric  = ctype_digit($orderIdRaw) ? (int)$orderIdRaw : null;
+    $orderIdNumeric  = ctype_digit($orderIdRaw) ? (int)$orderIdRaw : null;//is it pure numbers
     $customIdColumn  = xiapee_pick_column($conn, 'orders', ['order_id']);
 
     $orderColumns = [
@@ -174,13 +178,13 @@ try {
     ];
 
     if ($customIdColumn) {
-        $orderColumns[] = sprintf('o.`%s` AS order_id', $customIdColumn);
+        $orderColumns[] = sprintf('o.`%s` AS order_id', $customIdColumn);//string print formatted”。
     } else {
         $orderColumns[] = 'NULL AS order_id';
     }
 
     $orderSelectSql = 'SELECT '
-        . implode(', ', $orderColumns)
+        . implode(', ', $orderColumns)//make as o.id, o.buyer_id, o.merchant_id, o.total, o.created_at
         . ', u.name AS buyer_name, u.phone AS buyer_phone, u.school_email AS buyer_email, '
         . 'm.name AS merchant_name '
         . 'FROM orders o '

@@ -816,7 +816,7 @@ async function updateWalletBalance() {
     
     // Update database
     await updateDatabaseBalance(newBalance);
-    
+
     loadWalletData();
     showNotification('Wallet balance updated successfully', 'success');
 }

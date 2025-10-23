@@ -433,7 +433,6 @@ function showError(msg) {
     errorMsg.style.display = 'block';
 }
 
-
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         await loadDB();

@@ -66,6 +66,7 @@ foreach ($items as $it) {
         $merchantIds[] = (int)$it['vendorId'];
     }
 }
+
 $merchantIds = array_values(array_unique($merchantIds));
 if (count($merchantIds) !== 1) {
     http_response_code(422);
@@ -151,14 +152,7 @@ try {
     $addonStmt->close();
 
     $paymentId = null;
-    $res = $conn->query('SELECT COALESCE(MAX(payment_id), 0) + 1 AS next_id FROM payments FOR UPDATE');
-    if ($res instanceof mysqli_result) {
-        $row = $res->fetch_assoc();
-        $paymentId = (int)($row['next_id'] ?? 1);
-        $res->free();
-    } else {
-        $paymentId = 1;
-    }
+
     $paymentStmt = $conn->prepare('INSERT INTO payments (order_id, payment_method, status) VALUES (?, ?, ?)
                     ON DUPLICATE KEY UPDATE payment_method = VALUES(payment_method), status = VALUES(status)');
     $paymentStmt->bind_param('iss', $orderId, $paymentMethod, $paymentStatus);

@@ -34,7 +34,7 @@ const stepDelivered = document.getElementById('step-delivered');
 
 const STATUS_STAGES = [
     { label: 'Order Confirmed', keywords: ['confirm', 'placed', 'accept'] },
-    { label: 'Being Prepared', keywords: ['prepar', 'cook', 'kitchen'] },
+    { label: 'Being Prepared', keywords: ['prepare', 'cook', 'kitchen'] },
     { label: 'Out for Delivery', keywords: ['delivery', 'dispatch', 'way', 'pickup', 'picked'] },
     { label: 'Delivered', keywords: ['delivered', 'complete', 'arriv', 'done'] },
 ];
@@ -64,7 +64,8 @@ async function loadDB() {
     if (db) return;
     let base = null;
     try {
-        const res = await fetch('/backend/database.php', { cache: 'no-store' });
+        const res = await fetch('/backend/database.php', { 
+            cache: 'no-store' });
         if (res.ok) {
             base = await res.json();
         }
@@ -418,7 +419,7 @@ function scheduleProgress() {
         if (keepGoing) {
             scheduleProgress();
         }
-    }, 10000);
+    }, 2000);
 }
 
 async function loadOrderFromServer(id, options = {}) {

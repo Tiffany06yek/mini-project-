@@ -458,4 +458,66 @@ header {
     margin-left: 20px;
 }
 
-
+.review-field {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .review-field label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #2e5339; /* 深绿色标题 */
+  }
+  
+  #review-text {
+    resize: vertical;
+    padding: 10px;
+    border: 1px solid #b5d2b0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  #review-text:focus {
+    border-color: #57a773;
+    box-shadow: 0 0 5px rgba(87, 167, 115, 0.4);
+    outline: none;
+  }
+  
+  .review-submit-btn {
+    background-color: #57a773; /* 主绿色 */
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+  }
+  
+  .review-submit-btn:hover {
+    background-color: #4b9566;
+  }
+  
+  .review-submit-btn:active {
+    transform: scale(0.98);
+  }
+  
+  .review-message {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #3b7a57; /* 成功提示绿 */
+  }
+  
+  /* 可选：整块区域整体样式 */
+  .review-section {
+    background-color: #f4faf4;
+    padding: 20px;
+    border: 1px solid #d6e9d6;
+    border-radius: 10px;
+    max-width: 500px;
+    margin: 20px auto;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }

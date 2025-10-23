@@ -1,5 +1,4 @@
 <?php
-//AJAX（前端 → 后端不刷新页面的请求）
 require __DIR__ . '/database.php';
 
 $firstName = $_POST['firstName'] ?? '';
